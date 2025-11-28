@@ -5,226 +5,458 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgN - Sistema de Numeração</title>
     <style>
-        :root { --primary: #0056b3; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: var(--primary); text-align: center; margin-bottom: 30px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #004494; }
-        .hidden { display: none; }
-        
-        /* Tabela de Histórico */
-        .history { margin-top: 40px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
-        th { background: #f8f9fa; color: #555; }
-        .badge-num { background: var(--primary); color: white; padding: 4px 8px; border-radius: 12px; font-weight: bold; }
+        /* Paleta base (modo claro) */
+        :root {
+            --primary: #0056b3;
+            --primary-dark: #004494;
+            --bg: #f4f7f6;
+            --bg-elevated: #ffffff;
+            --text: #111111;
+            --text-muted: #666666;
+            --border: #dddddd;
+            --shadow: 0 2px 10px rgba(0,0,0,0.08);
+            --table-header: #f8f9fa;
+        }
+
+        /* Modo escuro seguindo o sistema/navegador */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #4dabf7;
+                --primary-dark: #1c7ed6;
+                --bg: #121212;
+                --bg-elevated: #1e1e1e;
+                --text: #f4f7f6;
+                --text-muted: #b0b0b0;
+                --border: #333333;
+                --shadow: 0 2px 12px rgba(0,0,0,0.6);
+                --table-header: #242424;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Topbar / Menu */
+        .topbar {
+            background: var(--bg-elevated);
+            color: var(--text);
+            box-shadow: var(--shadow);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .topbar-inner {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .brand small {
+            display: block;
+            font-weight: 400;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-button {
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .nav-button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .nav-button.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        /* Container principal */
+        .page-wrapper {
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--bg-elevated);
+            padding: 24px 24px 32px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin: 0 0 20px;
+        }
+
+        .subtitle-center {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .section-title {
+            margin: 10px 0 16px;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 9px 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.95rem;
+            background: transparent;
+            color: var(--text);
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        button,
+        .btn {
+            padding: 11px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover,
+        .btn:hover {
+            background: var(--primary-dark);
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: default;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Linha compacta para data / processo / drive */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 3fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 700px) {
+            .topbar-inner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-buttons {
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Tabela de Histórico / Consulta */
+        .history,
+        .consulta-bloco {
+            margin-top: 28px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        th,
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: var(--table-header);
+            color: var(--text-muted);
+        }
+
+        .badge-num {
+            background: var(--primary);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        .helper-text {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .consulta-header {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .consulta-filtros {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .consulta-filtros input {
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .consulta-filtros .btn {
+            white-space: nowrap;
+        }
+
+        .consulta-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>AgN <small style="font-size: 0.5em; color: #666;">Numeração AgSUS</small></h1>
-
-    <form id="formAgN">
-        <!-- Seleção do Tipo (Dispara a lógica visual) -->
-        <div class="form-group">
-            <label>Tipo de Documento *</label>
-            <select id="tipo" name="tipo" required onchange="ajustarCampos()">
-                <option value="">Selecione...</option>
-                <option value="Cotação de Preços">Cotação de Preços</option>
-                <option value="Pregão Eletrônico">Pregão Eletrônico</option>
-                <option value="Ata SRP">Ata SRP</option>
-                <option value="Credenciamento">Credenciamento</option>
-                <option value="Convênio">Convênio</option>
-                <option value="Ordem de Fornecimento">Ordem de Fornecimento</option>
-                <option value="Contratos">Contratos</option>
-                <option value="Inexigibilidade">Inexigibilidade</option>
-                <option value="Contrato de Patrocínio">Contrato de Patrocínio</option>
-                <option value="Acordo de Cooperação">Acordo de Cooperação</option>
-            </select>
+<header class="topbar">
+    <div class="topbar-inner">
+        <div class="brand">
+            AgN
+            <small>Numeração AgSUS</small>
         </div>
-
-        <!-- Campos Comuns (Sempre visíveis) -->
-        <div class="form-group">
-            <label>Data</label>
-            <input type="date" id="data" name="data" required>
+        <div class="nav-buttons">
+            <button type="button" class="nav-button active" id="btnNavGerar" onclick="mostrarView('gerar')">
+                Gerar
+            </button>
+            <button type="button" class="nav-button" id="btnNavConsultar" onclick="mostrarView('consultar')">
+                Consultar
+            </button>
         </div>
+    </div>
+</header>
 
-        <div class="form-group">
-            <label>Processo (ex: AGSUS.007637/2025-93) *</label>
-            <input type="text" name="processo" required placeholder="Número do Processo SEI">
-        </div>
+<div class="page-wrapper">
+    <div class="container">
 
-        <div class="form-group">
-            <label>Objeto *</label>
-            <textarea name="objeto" rows="3" required placeholder="Descrição do objeto..."></textarea>
-        </div>
+        <!-- VIEW GERAR -->
+        <section id="view-gerar">
+            <h1>Gerar numeração</h1>
+            <p class="subtitle-center">
+                Preencha os campos abaixo para gerar o próximo número sequencial conforme o tipo de documento.
+            </p>
 
-        <div class="form-group">
-            <label>Drive ID (Opcional)</label>
-            <input type="number" name="drive" placeholder="Ex: 375">
-        </div>
+            <form id="formAgN">
+                <!-- Seleção do Tipo -->
+                <div class="form-group">
+                    <label>Tipo de Documento *</label>
+                    <select id="tipo" name="tipo" required onchange="ajustarCampos()">
+                        <option value="">Selecione...</option>
+                        <option value="Cotação de Preços">Cotação de Preços</option>
+                        <option value="Pregão Eletrônico">Pregão Eletrônico</option>
+                        <option value="Ata SRP">Ata SRP</option>
+                        <option value="Credenciamento">Credenciamento</option>
+                        <option value="Convênio">Convênio</option>
+                        <option value="Ordem de Fornecimento">Ordem de Fornecimento</option>
+                        <option value="Contratos">Contratos</option>
+                        <option value="Inexigibilidade">Inexigibilidade</option>
+                        <option value="Contrato de Patrocínio">Contrato de Patrocínio</option>
+                        <option value="Acordo de Cooperação">Acordo de Cooperação</option>
+                    </select>
+                </div>
 
-        <!-- Campos Específicos (Controlados via JS) -->
-        
-        <!-- Grupo: Publicação -->
-        <div id="group-publicacao" class="hidden">
-            <div class="form-group">
-                <label>Publicado no site AgSUS?</label>
-                <select name="publicado_site">
-                    <option value="Não">Não</option>
-                    <option value="Sim">Sim</option>
-                </select>
+                <!-- Linha compacta: Data / Processo / Drive -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Data *</label>
+                        <input type="date" id="data" name="data" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Processo (ex: AGSUS.007637/2025-93) *</label>
+                        <input type="text" name="processo" required placeholder="Número do Processo SEI">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Drive ID (Opcional)</label>
+                        <input type="number" name="drive" placeholder="Ex: 375">
+                    </div>
+                </div>
+
+                <!-- Objeto -->
+                <div class="form-group">
+                    <label>Objeto *</label>
+                    <textarea name="objeto" rows="3" required placeholder="Descrição do objeto..."></textarea>
+                </div>
+
+                <!-- Campos Específicos -->
+                <div id="group-publicacao" class="hidden">
+                    <div class="form-group">
+                        <label>Publicado no site AgSUS?</label>
+                        <select name="publicado_site">
+                            <option value="Não">Não</option>
+                            <option value="Sim">Sim</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="field-divulgacao" class="form-group hidden">
+                    <label>Divulgação da Cotação</label>
+                    <select name="divulgacao_cotacao">
+                        <option value="">Selecione...</option>
+                        <option value="E-Mail">E-Mail</option>
+                        <option value="Compras Gov">Compras Gov</option>
+                    </select>
+                </div>
+
+                <div id="field-contratado" class="form-group hidden">
+                    <label>Contratado *</label>
+                    <input type="text" name="contratado">
+                </div>
+
+                <div id="field-coordenacao" class="form-group hidden">
+                    <label>Coordenação</label>
+                    <input type="text" name="coordenacao">
+                </div>
+
+                <div id="field-orcamento" class="form-group hidden">
+                    <label>Orçamento</label>
+                    <input type="text" name="orcamento">
+                </div>
+
+                <div class="form-group">
+                    <label>Observações</label>
+                    <textarea name="observacoes" rows="2"></textarea>
+                </div>
+
+                <button type="submit" id="btnGerar">Gerar Número</button>
+            </form>
+
+            <div class="history">
+                <h3 class="section-title">Últimos gerados</h3>
+                <p class="consulta-subtitle">
+                    Listagem rápida dos registros mais recentes criados no AgN.
+                </p>
+                <table id="tabelaHistorico">
+                    <thead>
+                        <tr>
+                            <th>Número</th>
+                            <th>Tipo</th>
+                            <th>Processo</th>
+                            <th>Objeto</th>
+                        </tr>
+                    </thead>
+                    <tbody><!-- JS preenche aqui --></tbody>
+                </table>
             </div>
-        </div>
+        </section>
 
-        <!-- Campo: Divulgação (Só Cotação) -->
-        <div id="field-divulgacao" class="form-group hidden">
-            <label>Divulgação da Cotação</label>
-            <select name="divulgacao_cotacao">
-                <option value="">Selecione...</option>
-                <option value="E-Mail">E-Mail</option>
-                <option value="Compras Gov">Compras Gov</option>
-            </select>
-        </div>
+        <!-- VIEW CONSULTAR -->
+        <section id="view-consultar" class="hidden">
+            <h1>Consultar numeração</h1>
+            <p class="subtitle-center">
+                Pesquise por número ou processo, ou visualize os últimos registros gerados.
+            </p>
 
-        <!-- Campo: Contratado (Só Ata SRP) -->
-        <div id="field-contratado" class="form-group hidden">
-            <label>Contratado *</label>
-            <input type="text" name="contratado">
-        </div>
+            <div class="consulta-bloco">
+                <div class="consulta-header">
+                    <div class="consulta-filtros">
+                        <input type="text" id="campoBusca" placeholder="Ex.: 5/2025 ou AGSUS.007637/2025-93">
+                        <button type="button" class="btn" onclick="buscarRegistros()">Buscar</button>
+                    </div>
+                    <div class="consulta-subtitle">
+                        Se nenhum termo for informado, serão exibidos os últimos registros.
+                    </div>
+                </div>
 
-        <!-- Campo: Coordenação (Vários) -->
-        <div id="field-coordenacao" class="form-group hidden">
-            <label>Coordenação</label>
-            <input type="text" name="coordenacao">
-        </div>
+                <table id="tabelaConsulta">
+                    <thead>
+                        <tr>
+                            <th>Número</th>
+                            <th>Tipo</th>
+                            <th>Processo</th>
+                            <th>Objeto</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody><!-- JS preencherá com últimos ou resultado da busca --></tbody>
+                </table>
+            </div>
+        </section>
 
-        <!-- Campo: Orçamento (Credenciamento/Convênio) -->
-        <div id="field-orcamento" class="form-group hidden">
-            <label>Orçamento</label>
-            <input type="text" name="orcamento">
-        </div>
-
-        <div class="form-group">
-            <label>Observações</label>
-            <textarea name="observacoes" rows="2"></textarea>
-        </div>
-
-        <button type="submit">Gerar Número</button>
-    </form>
-
-    <div class="history">
-        <h3>Últimos Gerados</h3>
-        <table id="tabelaHistorico">
-            <thead>
-                <tr>
-                    <th>Número</th>
-                    <th>Tipo</th>
-                    <th>Processo</th>
-                    <th>Objeto</th>
-                </tr>
-            </thead>
-            <tbody><!-- JS preenche aqui --></tbody>
-        </table>
     </div>
 </div>
 
 <script>
-    // 1. Configura Data de Hoje ao abrir
-    document.getElementById('data').valueAsDate = new Date();
-
-    // 2. Lógica de Exibição de Campos
-    function ajustarCampos() {
-        const tipo = document.getElementById('tipo').value;
-        
-        // Reseta visibilidade
-        document.getElementById('group-publicacao').classList.add('hidden');
-        document.getElementById('field-divulgacao').classList.add('hidden');
-        document.getElementById('field-contratado').classList.add('hidden');
-        document.getElementById('field-coordenacao').classList.add('hidden');
-        document.getElementById('field-orcamento').classList.add('hidden');
-
-        // Configurações por Tipo
-        if (tipo === 'Cotação de Preços') {
-            document.getElementById('group-publicacao').classList.remove('hidden');
-            document.getElementById('field-divulgacao').classList.remove('hidden');
-        } 
-        else if (tipo === 'Pregão Eletrônico') {
-            document.getElementById('group-publicacao').classList.remove('hidden');
-        }
-        else if (tipo === 'Ata SRP') {
-            document.getElementById('field-contratado').classList.remove('hidden');
-            document.getElementById('field-coordenacao').classList.remove('hidden');
-            // Torna obrigatório via JS se necessário
-        }
-        else if (tipo === 'Credenciamento' || tipo === 'Convênio') {
-            document.getElementById('group-publicacao').classList.remove('hidden');
-            document.getElementById('field-orcamento').classList.remove('hidden');
-        }
-        else if (['Ordem de Fornecimento', 'Contratos', 'Inexigibilidade', 'Contrato de Patrocínio', 'Acordo de Cooperação'].includes(tipo)) {
-            document.getElementById('field-coordenacao').classList.remove('hidden');
-        }
-    }
-
-    // 3. Envio do Formulário
-    document.getElementById('formAgN').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const dados = Object.fromEntries(formData.entries());
-
-        const btn = e.target.querySelector('button');
-        btn.disabled = true; btn.innerText = "Gerando...";
-
-        try {
-            const resp = await fetch('/api/gerar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dados)
-            });
-            const json = await resp.json();
-
-            if (json.sucesso) {
-                alert(`Gerado com Sucesso!\n\n${json.dados.tipo}\nNÚMERO: ${json.dados.numero}/${json.dados.ano}`);
-                e.target.reset();
-                document.getElementById('data').valueAsDate = new Date();
-                ajustarCampos();
-                carregarHistorico();
-            } else {
-                alert('Erro: ' + json.erro);
-            }
-        } catch (err) {
-            alert('Erro de conexão.');
-        }
-        btn.disabled = false; btn.innerText = "Gerar Número";
-    });
-
-    // 4. Carregar Histórico
-    async function carregarHistorico() {
-        const resp = await fetch('/api/listar');
-        const lista = await resp.json();
-        const tbody = document.querySelector('#tabelaHistorico tbody');
-        tbody.innerHTML = '';
-        
-        lista.forEach(item => {
-            tbody.innerHTML += `
-                <tr>
-                    <td><span class="badge-num">${item.numero}/${item.ano}</span></td>
-                    <td>${item.tipo}</td>
-                    <td>${item.processo || '-'}</td>
-                    <td>${item.objeto}</td>
-                </tr>
-            `;
-        });
-    }
-    
-    // Carrega ao iniciar
-    carregarHistorico();
-</script>
-
-</body>
-</html>
+    // Configura data de hoje ao abrir
+    document
