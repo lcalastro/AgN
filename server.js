@@ -8,25 +8,23 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // 1. Inicializa Banco de Dados
-// Criamos uma tabela "super" com todos os campos possíveis.
 db.exec(`
   CREATE TABLE IF NOT EXISTS documentos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tipo TEXT NOT NULL,          -- Ex: 'Cotação de Preços'
+    tipo TEXT NOT NULL,
     ano INTEGER NOT NULL,
     numero INTEGER NOT NULL,
     
-    data_registro TEXT,          -- Data do documento
-    drive_id INTEGER,            -- Campo 'Drive' (Numérico)
-    processo TEXT,               -- Processo SEI/Admin
-    objeto TEXT,                 -- Descrição longa
+    data_registro TEXT,
+    drive_id INTEGER,
+    processo TEXT,
+    objeto TEXT,
     
-    -- Campos Específicos
-    divulgacao_cotacao TEXT,     -- Email ou Compras Gov
-    publicado_site TEXT,         -- Sim ou Não
-    contratado TEXT,             -- Para Ata SRP
-    coordenacao TEXT,            -- Para Ata, Contratos, etc.
-    orcamento TEXT,              -- Para Credenciamento/Convênio
+    divulgacao_cotacao TEXT,
+    publicado_site TEXT,
+    contratado TEXT,
+    coordenacao TEXT,
+    orcamento TEXT,
     
     observacoes TEXT,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -43,27 +41,30 @@ db.exec(`
 // 2. API: Gerar Novo Número
 app.post('/api/gerar', (req, res) => {
     const dados = req.body;
-    const anoAtual = new Date().getFullYear(); // Usa o ano atual do servidor
+    const anoAtual = new Date().getFullYear();
 
-    // Validação básica de campos obrigatórios comuns
     if (!dados.tipo || !dados.processo || !dados.objeto) {
         return res.status(400).json({ erro: "Preencha Tipo, Processo e Objeto." });
     }
 
     try {
         const resultado = db.transaction(() => {
-            // 1. Busca/Incrementa Sequência
-            let seq = db.prepare('SELECT ultimo_numero FROM sequencias WHERE tipo = ? AND ano = ?').get(dados.tipo, anoAtual);
+            let seq = db.prepare(
+                'SELECT ultimo_numero FROM sequencias WHERE tipo = ? AND ano = ?'
+            ).get(dados.tipo, anoAtual);
             
             let novoNumero = 1;
             if (seq) {
                 novoNumero = seq.ultimo_numero + 1;
-                db.prepare('UPDATE sequencias SET ultimo_numero = ? WHERE tipo = ? AND ano = ?').run(novoNumero, dados.tipo, anoAtual);
+                db.prepare(
+                    'UPDATE sequencias SET ultimo_numero = ? WHERE tipo = ? AND ano = ?'
+                ).run(novoNumero, dados.tipo, anoAtual);
             } else {
-                db.prepare('INSERT INTO sequencias (tipo, ano, ultimo_numero) VALUES (?, ?, ?)').run(dados.tipo, anoAtual, 1);
+                db.prepare(
+                    'INSERT INTO sequencias (tipo, ano, ultimo_numero) VALUES (?, ?, ?)'
+                ).run(dados.tipo, anoAtual, 1);
             }
 
-            // 2. Insere Documento (Mapeando campos do request)
             const stmt = db.prepare(`
                 INSERT INTO documentos (
                     tipo, ano, numero, data_registro, drive_id, processo, objeto,
@@ -75,7 +76,7 @@ app.post('/api/gerar', (req, res) => {
                 dados.tipo,
                 anoAtual,
                 novoNumero,
-                dados.data || new Date().toISOString().split('T')[0], // Data de hoje se não vier
+                dados.data || new Date().toISOString().split('T')[0],
                 dados.drive || null,
                 dados.processo,
                 dados.objeto,
@@ -87,7 +88,12 @@ app.post('/api/gerar', (req, res) => {
                 dados.observacoes || null
             );
 
-            return { id: info.lastInsertRowid, numero: novoNumero, ano: anoAtual, tipo: dados.tipo };
+            return {
+                id: info.lastInsertRowid,
+                numero: novoNumero,
+                ano: anoAtual,
+                tipo: dados.tipo
+            };
         });
 
         res.json({ sucesso: true, dados: resultado() });
@@ -101,10 +107,47 @@ app.post('/api/gerar', (req, res) => {
 // 3. API: Listar Últimos (Histórico)
 app.get('/api/listar', (req, res) => {
     try {
-        const docs = db.prepare('SELECT * FROM documentos ORDER BY id DESC LIMIT 20').all();
+        const docs = db.prepare(
+            'SELECT * FROM documentos ORDER BY id DESC LIMIT 20'
+        ).all();
         res.json(docs);
     } catch (erro) {
         res.status(500).json({ erro: "Erro ao listar documentos." });
+    }
+});
+
+// 4. API: Buscar (Consulta)
+app.get('/api/buscar', (req, res) => {
+    const { limite, numero, ano, processo } = req.query;
+
+    try {
+        let sql = 'SELECT * FROM documentos';
+        const params = [];
+        const where = [];
+
+        if (numero && ano) {
+            where.push('numero = ? AND ano = ?');
+            params.push(Number(numero), Number(ano));
+        } else if (processo) {
+            where.push('processo LIKE ?');
+            params.push(`%${processo}%`);
+        }
+
+        if (where.length > 0) {
+            sql += ' WHERE ' + where.join(' AND ');
+        }
+
+        sql += ' ORDER BY id DESC';
+
+        const lim = limite ? Number(limite) : 20;
+        sql += ' LIMIT ?';
+        params.push(lim);
+
+        const lista = db.prepare(sql).all(...params);
+        res.json(lista);
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).json({ erro: "Erro ao buscar documentos." });
     }
 });
 
