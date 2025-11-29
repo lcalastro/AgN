@@ -151,6 +151,29 @@ app.get('/api/buscar', (req, res) => {
     }
 });
 
+// 5. API Detalhe de um documento
+app.get('/api/detalhe/:id', (req, res) => {
+  const id = Number(req.params.id);
+  if (!id) {
+    return res.status(400).json({ erro: 'ID inválido.' });
+  }
+
+  try {
+    const stmt = db.prepare('SELECT * FROM documentos WHERE id = ?');
+    const doc = stmt.get(id);
+
+    if (!doc) {
+      return res.status(404).json({ erro: 'Documento não encontrado.' });
+    }
+
+    res.json(doc);
+  } catch (erro) {
+    console.error(erro);
+    res.status(500).json({ erro: 'Erro ao buscar detalhes do documento.' });
+  }
+});
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`AgN rodando na porta ${PORT}`);
