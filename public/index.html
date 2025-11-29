@@ -454,6 +454,18 @@
             </div>
         </section>
 
+        <!-- VIEW DETALHE -->
+        <section id="view-detalhe" class="hidden">
+          <h1>Detalhes do numerador</h1>
+          <p class="subtitle-center">Visualização completa do registro selecionado.</p>
+        
+          <div id="detalhe-conteudo" class="consulta-bloco">
+            <!-- JS preenche aqui -->
+          </div>
+        
+          <button type="button" class="btn" onclick="voltarConsulta()">Voltar à consulta</button>
+        </section>
+        
     </div>
 </div>
 
@@ -616,32 +628,94 @@
     }
 
     function preencherTabelaConsulta(lista) {
-        const tbody = document.querySelector('#tabelaConsulta tbody');
-        tbody.innerHTML = '';
-
-        if (!lista || lista.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5">Nenhum registro encontrado.</td>
-                </tr>
-            `;
-            return;
-        }
-
-        lista.forEach(item => {
-            const data = item.data || '';
-            tbody.innerHTML += `
-                <tr>
-                    <td><span class="badge-num">${item.numero}/${item.ano}</span></td>
-                    <td>${item.tipo}</td>
-                    <td>${item.processo || '-'}</td>
-                    <td>${item.objeto}</td>
-                    <td>${data}</td>
-                </tr>
-            `;
-        });
+      const tbody = document.querySelector('#tabelaConsulta tbody');
+      tbody.innerHTML = '';
+    
+      if (!lista || lista.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5">Nenhum registro encontrado.</td></tr>`;
+        return;
+      }
+    
+      lista.forEach(item => {
+        // usa dataregistro que vem do backend; se não tiver, mostra '-'
+        const data = item.dataregistro || '-';
+    
+        const tr = document.createElement('tr');
+        tr.classList.add('linha-consulta');
+        tr.dataset.id = item.id; // id do documento vem do /api/buscar
+    
+        tr.innerHTML = `
+          <td><span class="badge-num">${item.numero}/${item.ano}</span></td>
+          <td>${item.tipo}</td>
+          <td>${item.processo || '-'}</td>
+          <td>${item.objeto}</td>
+          <td>${data}</td>
+        `;
+    
+        tbody.appendChild(tr);
+      });
     }
 
+    // Clique na tabela de consulta para abrir detalhes
+    document.addEventListener('DOMContentLoaded', () => {
+      const tbodyConsulta = document.querySelector('#tabelaConsulta tbody');
+      if (!tbodyConsulta) return;
+    
+      tbodyConsulta.addEventListener('click', async (e) => {
+        const linha = e.target.closest('tr.linha-consulta');
+        if (!linha) return;
+    
+        const id = linha.dataset.id;
+        if (!id) return;
+    
+        await abrirDetalhesDocumento(id);
+      });
+    });
+
+    async function abrirDetalhesDocumento(id) {
+      try {
+        const resp = await fetch(`/api/detalhe/${id}`);
+        if (!resp.ok) {
+          alert('Erro ao carregar detalhes.');
+          return;
+        }
+    
+        const doc = await resp.json();
+    
+        const div = document.getElementById('detalhe-conteudo');
+        const data = doc.dataregistro || '-';
+    
+        div.innerHTML = `
+          <p><strong>Número:</strong> ${doc.numero}/${doc.ano}</p>
+          <p><strong>Tipo:</strong> ${doc.tipo}</p>
+          <p><strong>Processo:</strong> ${doc.processo || '-'}</p>
+          <p><strong>Data:</strong> ${data}</p>
+          <p><strong>Drive ID:</strong> ${doc.driveid || '-'}</p>
+          <p><strong>Objeto:</strong> ${doc.objeto || '-'}</p>
+          <p><strong>Divulgação cotação:</strong> ${doc.divulgacaocotacao || '-'}</p>
+          <p><strong>Publicado no site:</strong> ${doc.publicadosite || '-'}</p>
+          <p><strong>Contratado:</strong> ${doc.contratado || '-'}</p>
+          <p><strong>Coordenação:</strong> ${doc.coordenacao || '-'}</p>
+          <p><strong>Orçamento:</strong> ${doc.orcamento || '-'}</p>
+          <p><strong>Observações:</strong> ${doc.observacoes || '-'}</p>
+        `;
+    
+        // Mostra view de detalhe e esconde as demais
+        document.getElementById('view-gerar').classList.add('hidden');
+        document.getElementById('view-consultar').classList.add('hidden');
+        document.getElementById('view-detalhe').classList.remove('hidden');
+      } catch (e) {
+        console.error(e);
+        alert('Erro ao carregar detalhes.');
+      }
+    }
+    
+    function voltarConsulta() {
+      document.getElementById('view-detalhe').classList.add('hidden');
+      document.getElementById('view-consultar').classList.remove('hidden');
+    }
+
+    
     // Carrega histórico inicial
     carregarHistorico();
 </script>
