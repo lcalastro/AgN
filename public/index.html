@@ -579,68 +579,99 @@
 
     // Buscar registros a partir do campo de busca
     async function buscarRegistros() {
-        const termo = document.getElementById('campoBusca').value.trim();
-
-        let url = '/api/buscar';
-        const params = new URLSearchParams();
-
-        if (termo) {
-            // Heurística simples:
-            // Se tiver "/" e dígitos: tentar número/ano
-            if (/\d+\/\d{4}/.test(termo)) {
-                const partes = termo.split('/');
-                const numero = partes[0].replace(/\D/g, '');
-                const ano = partes[1].replace(/\D/g, '');
-                if (numero) params.append('numero', numero);
-                if (ano) params.append('ano', ano);
-            } else {
-                // Caso contrário, assume processo ou trecho de processo
-                params.append('processo', termo);
-            }
-        } else {
-            // Sem termo: mantemos a lógica de "últimos"
-            params.append('limite', '20');
-        }
-
-        if ([...params].length > 0) {
-            url += '?' + params.toString();
-        }
-
-        try {
-            const resp = await fetch(url);
-            const lista = await resp.json();
-            preencherTabelaConsulta(lista);
-        } catch (e) {
-            console.error('Erro ao buscar registros', e);
-        }
+    const termoInput = document.getElementById('campoBusca');
+    if (!termoInput) {
+    console.error('Campo de busca não encontrado');
+    return;
     }
-
+    
+    const termo = termoInput.value.trim();
+    console.log('Buscando por:', termo || '(vazio)');
+    
+    let url = '/api/buscar';
+    const params = new URLSearchParams();
+    
+    if (termo) {
+    // número/ano no formato 5/2025, 05/2025 etc.
+    if (/\d+/\d{4}/.test(termo)) {
+    const partes = termo.split('/');
+    const numero = partes.replace(/\D/g, '');
+    const ano = partes.replace(/\D/g, '');​
+    if (numero) params.append('numero', numero);
+    if (ano) params.append('ano', ano);
+    } else {
+    // qualquer outra coisa: trata como processo (LIKE)
+    params.append('processo', termo);
+    }
+    } else {
+    // sem termo: últimos registros
+    params.append('limite', '20');
+    }
+    
+    if ([...params].length > 0) {
+    url += '?' + params.toString();
+    }
+    
+    try {
+    const resp = await fetch(url);
+    const lista = await resp.json();
+    console.log('Quantidade retornada:', Array.isArray(lista) ? lista.length : 'não é array');
+    preencherTabelaConsulta(lista);
+    } catch (e) {
+    console.error('Erro ao buscar registros', e);
+    alert('Erro ao consultar registros.');
+    }
+    }
+    
     function preencherTabelaConsulta(lista) {
-        const tbody = document.querySelector('#tabelaConsulta tbody');
-        tbody.innerHTML = '';
-
-        if (!lista || lista.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5">Nenhum registro encontrado.</td>
-                </tr>
-            `;
-            return;
-        }
-
-        lista.forEach(item => {
-            const data = item.data || '';
-            tbody.innerHTML += `
-                <tr>
-                    <td><span class="badge-num">${item.numero}/${item.ano}</span></td>
-                    <td>${item.tipo}</td>
-                    <td>${item.processo || '-'}</td>
-                    <td>${item.objeto}</td>
-                    <td>${data}</td>
-                </tr>
-            `;
-        });
+    const tbody = document.querySelector('#tabelaConsulta tbody');
+    if (!tbody) {
+    console.error('Tabela de consulta não encontrada');
+    return;
     }
+    
+    tbody.innerHTML = '';
+    
+    if (!lista || !Array.isArray(lista) || lista.length === 0) {
+    tbody.innerHTML = <tr> <td colspan="6">Nenhum registro encontrado.</td> </tr> ;
+    return;
+    }
+    
+    lista.forEach(item => {
+    const data = item.data_registro || item.data || '';
+    const id = item.id;
+    }
+
+    tbody.innerHTML += `
+      <tr>
+          <td><span class="badge-num">${item.numero}/${item.ano}</span></td>
+          <td>${item.tipo}</td>
+          <td>${item.processo || '-'}</td>
+          <td>${item.objeto}</td>
+          <td>${data}</td>
+          <td>
+              <button type="button" class="btn" style="padding:4px 10px;font-size:0.8rem;"
+                  onclick="toggleDetalhe(${id})">
+                  Detalhes
+              </button>
+          </td>
+      </tr>
+      <tr id="det-${id}" class="hidden">
+          <td colspan="6">
+              <strong>Processo:</strong> ${item.processo || '-'}<br>
+              <strong>Objeto:</strong> ${item.objeto || '-'}<br>
+              <strong>Coordenação:</strong> ${item.coordenacao || '-'}<br>
+              <strong>Drive ID:</strong> ${item.drive_id || '-'}<br>
+              <strong>Publicado no site:</strong> ${item.publicado_site || '-'}<br>
+              <strong>Divulgação (Cotação):</strong> ${item.divulgacao_cotacao || '-'}<br>
+              <strong>Contratado:</strong> ${item.contratado || '-'}<br>
+              <strong>Orçamento:</strong> ${item.orcamento || '-'}<br>
+              <strong>Observações:</strong> ${item.observacoes || '-'}
+          </td>
+      </tr>
+  `;
+});
+}
 
     // Carrega histórico inicial
     carregarHistorico();
