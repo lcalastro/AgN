@@ -1,117 +1,157 @@
-/* CORES AgSUS SUTIS - MANTER ERP */
+/* =========================================================
+   AGSUS.CSS - TEMA PERSONALIZADO AgN (ERP STYLE)
+   ========================================================= */
+
+/* 1. VARIÁVEIS DE COR */
 :root {
-  --agsus-azul: #0056b3;
-  --agsus-azul-claro: #007bff;
+  --agsus-azul: #0056b3;       /* Azul Institucional */
+  --agsus-azul-claro: #007bff; /* Azul Highlight */
+  --agsus-cinza-sidebar: #1e293b; /* Cinza Profissional */
 }
 
-/* ---------------------------------------------------------
-   SIDEBAR & HEADER (Layout Ajustado: Header Full + Sidebar Abaixo)
-   --------------------------------------------------------- */
+/* =========================================================
+   2. LAYOUT ESTRUTURAL (HEADER FULL + SIDEBAR ABAIXO)
+   ========================================================= */
 
-/* Header fixo no topo, ocupando largura total (cobrindo topo da sidebar) */
+/* HEADER: Fixo no topo, largura total (cobre o topo da sidebar) */
 .main-header {
-  background: #ffffff !important;
-  box-shadow: 0 1px 10px rgba(0,0,0,0.1);
-  margin-left: 0 !important; /* Remove margem esquerda padrão */
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  border-bottom: 1px solid #dee2e6;
+  
+  /* Força largura total ignorando a sidebar */
+  margin-left: 0 !important;
   width: 100% !important;
+  
+  /* Fixação */
   position: fixed !important;
   top: 0;
   left: 0;
-  z-index: 1040 !important; /* Fica acima da sidebar */
-  height: 57px;
+  height: 57px; /* Altura padrão AdminLTE */
+  z-index: 1040 !important; /* Acima da sidebar */
 }
 
-/* Sidebar começando ABAIXO do header */
+/* SIDEBAR: Começa ABAIXO do header */
 .main-sidebar {
-  background: #1e293b !important; /* Cinza escuro ERP */
+  background-color: var(--agsus-cinza-sidebar) !important;
   border-right: 1px solid #2d3748;
-  top: 57px !important; /* Começa abaixo do header */
-  height: calc(100vh - 57px) !important;
-  position: fixed !important;
+  
+  /* Posicionamento calculado */
+  top: 57px !important; /* Pula a altura do header */
+  height: calc(100vh - 57px) !important; /* Ocupa o resto da altura */
   padding-top: 10px;
+  
+  position: fixed !important;
   z-index: 1038 !important;
-  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  box-shadow: 2px 0 8px rgba(0,0,0,0.05);
 }
 
-/* Ajuste do Conteúdo Principal */
+/* CONTEÚDO PRINCIPAL: Margens dinâmicas */
 .content-wrapper {
   background-color: #f4f6f9;
-  margin-top: 57px !important; /* Espaço para o header */
+  margin-top: 57px !important; /* Pula o header */
   min-height: calc(100vh - 57px) !important;
-  transition: margin-left 0.3s ease-in-out;
+  transition: margin-left 0.3s ease-in-out; /* Animação suave ao recolher */
 }
 
-/* Comportamento Responsivo do Conteúdo */
+/* =========================================================
+   3. COMPORTAMENTO DO TOGGLE (ABRIR/FECHAR MENU)
+   ========================================================= */
+
 @media (min-width: 992px) {
-  /* Desktop: Deixa espaço para sidebar aberta */
+  /* ESTADO 1: Sidebar ABERTA (Padrão Desktop) */
   body:not(.sidebar-collapse) .content-wrapper {
-    margin-left: 250px !important;
+    margin-left: 250px !important; /* Empurra conteúdo para a direita */
   }
-  /* Desktop: Sidebar recolhida */
+
+  /* ESTADO 2: Sidebar RECOLHIDA (Mini) */
   body.sidebar-collapse .content-wrapper {
-    margin-left: 4.6rem !important;
+    margin-left: 4.6rem !important; /* Apenas espaço dos ícones (aprox 73px) */
+  }
+  
+  /* Ajuste visual da sidebar quando recolhida */
+  body.sidebar-collapse .main-sidebar {
+    width: 4.6rem !important;
+  }
+  
+  /* Esconde textos do menu quando recolhido (AdminLTE faz isso, mas garantimos aqui) */
+  body.sidebar-collapse .main-sidebar .brand-text,
+  body.sidebar-collapse .main-sidebar .user-panel,
+  body.sidebar-collapse .main-sidebar .nav-sidebar .nav-link p {
+    display: none !important;
+    opacity: 0; 
+    transition: opacity .3s;
+  }
+  
+  /* Mostra ícones centralizados quando recolhido */
+  body.sidebar-collapse .main-sidebar .nav-sidebar .nav-link i {
+    margin-right: 0;
+    text-align: center;
+    width: 100%;
   }
 }
 
 @media (max-width: 991.98px) {
-  /* Mobile: Conteúdo ocupa tudo */
+  /* MOBILE: Conteúdo sempre ocupa tudo */
   .content-wrapper {
     margin-left: 0 !important;
   }
+  
+  /* Sidebar começa escondida no mobile */
+  .main-sidebar {
+    margin-left: -250px;
+  }
+  
+  /* Quando aberta no mobile */
+  body.sidebar-open .main-sidebar {
+    margin-left: 0;
+  }
 }
 
-/* ---------------------------------------------------------
-   ESTILOS VISUAIS (Cores e Componentes)
-   --------------------------------------------------------- */
+/* =========================================================
+   4. ESTILOS VISUAIS (CORES E COMPONENTES)
+   ========================================================= */
 
-/* ACENTO AgSUS sutil na logo (se houver brand-link) */
-.brand-link {
-  background: rgba(0,86,179,0.1) !important;
-  border-bottom: 1px solid rgba(0,86,179,0.2);
-}
-
-/* Ajuste fino do logo no header */
+/* LOGO NO HEADER */
 .navbar-brand {
   display: flex;
   align-items: center;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
+  padding-left: 0.5rem;
 }
 
-/* Botões com azul AgSUS (ERP style) */
+/* BOTÕES */
 .btn-primary {
-  background: var(--agsus-azul) !important;
+  background-color: var(--agsus-azul) !important;
   border-color: var(--agsus-azul) !important;
-  box-shadow: 0 2px 4px rgba(0,86,179,0.3);
+  box-shadow: 0 2px 4px rgba(0,86,179,0.2);
 }
-
 .btn-primary:hover {
-  background: #004494 !important;
+  background-color: #004494 !important;
   transform: translateY(-1px);
 }
 
-/* Cards ERP com sombra profissional */
+/* CARDS */
 .card {
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
-  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.05) !important;
+  border: 1px solid #e9ecef;
   margin-bottom: 1.5rem;
+  border-radius: 0.5rem;
 }
-
 .card-primary.card-outline {
   border-left: 4px solid var(--agsus-azul) !important;
-  border-top: 0; /* Remove borda superior padrão do AdminLTE */
+  border-top: 0; /* Remove padrão AdminLTE */
 }
 
-/* Tabelas ERP hover */
+/* TABELAS */
 .table-hover tbody tr:hover {
-  background-color: rgba(0,86,179,0.04) !important;
+  background-color: rgba(0,86,179,0.03) !important;
+}
+.badge-primary {
+  background-color: var(--agsus-azul) !important;
 }
 
-/* Login mantém gradiente AgSUS */
+/* LOGIN PAGE */
 .login-page {
   background: linear-gradient(135deg, #1e293b 0%, #334155 50%, var(--agsus-azul) 100%);
-}
-
-/* Badge numerador AgSUS */
-.badge-primary {
-  background: var(--agsus-azul) !important;
 }
