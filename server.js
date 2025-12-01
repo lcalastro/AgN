@@ -254,3 +254,16 @@ app.get('/api/logs', verificarToken, (req, res) => {
       FROM logs l
       LEFT JOIN usuarios u ON l.usuario_id = u.id
       ORDER BY l.criadoem DESC
+      LIMIT 100
+    `).all();
+    res.json(logs);
+  } catch (erro) {
+    console.error(erro);
+    res.status(500).json({ erro: 'Erro ao listar logs.' });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log('AgN rodando na porta ' + PORT);
+});
