@@ -59,12 +59,12 @@ db.exec(`
   );
 `);
 
-// Usuário padrão (admin@agsus.gov.br / 123456)
+// Usuário padrão (luis.calastro@agenciasus.org.br / 123456)
 const userHash = bcrypt.hashSync('123456', 10);
-const userCheck = db.prepare('SELECT id FROM usuarios WHERE email = ?').get('admin@agsus.gov.br');
+const userCheck = db.prepare('SELECT id FROM usuarios WHERE email = ?').get('luis.calastro@agenciasus.org.br');
 if (!userCheck) {
   db.prepare('INSERT INTO usuarios (email, senha, nome) VALUES (?, ?, ?)').run(
-    'admin@agsus.gov.br',
+    'luis.calastro@agenciasus.org.br',
     userHash,
     'Administrador AgSUS'
   );
