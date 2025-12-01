@@ -26,55 +26,61 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function montarShell(usuario) {
   const app = document.getElementById('app');
   app.innerHTML = `
-    <!-- Navbar -->
+    <!-- Navbar (Header) com Logo -->
     <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+      <!-- Logo agora fica aqui no Header -->
+      <a href="#" class="navbar-brand ml-3 mr-3" onclick="mostrarView('gerar')">
+        <img src="/img/Logo-AgN-com-Texto.png"
+             alt="AgN"
+             style="height: 30px; width: auto; margin-right: 10px;">
+        <span class="font-weight-bold" style="color: #0056b3;">AgN</span>
+      </a>
+
+      <!-- Botão do Menu (Hamburguer) -->
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a>
-        </li>
-        <li class="nav-item d-none d-sm-inline-block">
-          <a href="#" class="nav-link" onclick="mostrarView('gerar')">Gerar</a>
-        </li>
-        <li class="nav-item d-none d-sm-inline-block">
-          <a href="#" class="nav-link" onclick="mostrarView('consultar')">Consultar</a>
+          <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
         </li>
       </ul>
+
+      <!-- Menu de Usuário (Direita) -->
       <ul class="navbar-nav ml-auto">
         <li class="nav-item">
           <a class="nav-link" href="#" onclick="logout()">
-            <i class="far fa-user"></i> ${usuario.nome || 'Usuário'}
+            <i class="far fa-user mr-2"></i> ${usuario.nome || 'Usuário'}
+            <span class="float-right text-muted text-sm ml-2"><i class="fas fa-sign-out-alt"></i> Sair</span>
           </a>
         </li>
       </ul>
     </nav>
 
-    <!-- Sidebar -->
+    <!-- Sidebar (Apenas Menu) -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
-      <a href="#" class="brand-link">
-        <img src="/img/Logo-AgN-com-Texto.png"
-             alt="AgN - Numeração"
-             class="brand-image"
-             style="height:32px; width:auto; object-fit:contain; margin-right:8px;">
-      </a>
+      <!-- Sem brand-link aqui dentro -->
+      
       <div class="sidebar">
-        <nav class="mt-2">
-          <ul class="nav nav-pills nav-sidebar flex-column">
+        <nav class="mt-3">
+          <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+            <li class="nav-header">MENU PRINCIPAL</li>
+            
             <li class="nav-item">
-              <a class="nav-link active" onclick="mostrarView('gerar')">
+              <a class="nav-link active" onclick="mostrarView('gerar')" style="cursor: pointer">
                 <i class="nav-icon fas fa-plus"></i>
                 <p>Gerar Numerador</p>
               </a>
             </li>
+            
             <li class="nav-item">
-              <a class="nav-link" onclick="mostrarView('consultar')">
+              <a class="nav-link" onclick="mostrarView('consultar')" style="cursor: pointer">
                 <i class="nav-icon fas fa-search"></i>
                 <p>Consultar</p>
               </a>
             </li>
+            
             <li class="nav-item">
-              <a class="nav-link" onclick="mostrarView('logs')">
+              <a class="nav-link" onclick="mostrarView('logs')" style="cursor: pointer">
                 <i class="nav-icon fas fa-history"></i>
-                <p>Logs</p>
+                <p>Logs do Sistema</p>
               </a>
             </li>
           </ul>
@@ -84,7 +90,7 @@ async function montarShell(usuario) {
 
     <!-- Content -->
     <div class="content-wrapper">
-      <section class="content pt-3">
+      <section class="content pt-4">
         <div class="container-fluid" id="content"></div>
       </section>
     </div>
