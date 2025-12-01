@@ -4,16 +4,70 @@
   --agsus-azul-claro: #007bff;
 }
 
-/* Sidebar começando ABAIXO do header */
-.main-sidebar {
-  top: 57px !important; /* Altura padrão do navbar */
-  height: calc(100vh - 57px) !important;
-  padding-top: 10px;
+/* ---------------------------------------------------------
+   SIDEBAR & HEADER (Layout Ajustado: Header Full + Sidebar Abaixo)
+   --------------------------------------------------------- */
+
+/* Header fixo no topo, ocupando largura total (cobrindo topo da sidebar) */
+.main-header {
+  background: #ffffff !important;
+  box-shadow: 0 1px 10px rgba(0,0,0,0.1);
+  margin-left: 0 !important; /* Remove margem esquerda padrão */
+  width: 100% !important;
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  z-index: 1040 !important; /* Fica acima da sidebar */
+  height: 57px;
 }
 
-/* Ajuste do conteúdo para não colar no topo */
+/* Sidebar começando ABAIXO do header */
+.main-sidebar {
+  background: #1e293b !important; /* Cinza escuro ERP */
+  border-right: 1px solid #2d3748;
+  top: 57px !important; /* Começa abaixo do header */
+  height: calc(100vh - 57px) !important;
+  position: fixed !important;
+  padding-top: 10px;
+  z-index: 1038 !important;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+/* Ajuste do Conteúdo Principal */
 .content-wrapper {
-  margin-top: 57px !important;
+  background-color: #f4f6f9;
+  margin-top: 57px !important; /* Espaço para o header */
+  min-height: calc(100vh - 57px) !important;
+  transition: margin-left 0.3s ease-in-out;
+}
+
+/* Comportamento Responsivo do Conteúdo */
+@media (min-width: 992px) {
+  /* Desktop: Deixa espaço para sidebar aberta */
+  body:not(.sidebar-collapse) .content-wrapper {
+    margin-left: 250px !important;
+  }
+  /* Desktop: Sidebar recolhida */
+  body.sidebar-collapse .content-wrapper {
+    margin-left: 4.6rem !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  /* Mobile: Conteúdo ocupa tudo */
+  .content-wrapper {
+    margin-left: 0 !important;
+  }
+}
+
+/* ---------------------------------------------------------
+   ESTILOS VISUAIS (Cores e Componentes)
+   --------------------------------------------------------- */
+
+/* ACENTO AgSUS sutil na logo (se houver brand-link) */
+.brand-link {
+  background: rgba(0,86,179,0.1) !important;
+  border-bottom: 1px solid rgba(0,86,179,0.2);
 }
 
 /* Ajuste fino do logo no header */
@@ -21,17 +75,6 @@
   display: flex;
   align-items: center;
   font-size: 1.2rem;
-}
-
-/* Remover margem esquerda padrão do AdminLTE quando sidebar está fechada (opcional, melhora visual) */
-.layout-fixed .main-sidebar {
-  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-}
-
-/* ACENTO AgSUS sutil na logo */
-.brand-link {
-  background: rgba(0,86,179,0.1) !important;
-  border-bottom: 1px solid rgba(0,86,179,0.2);
 }
 
 /* Botões com azul AgSUS (ERP style) */
@@ -50,10 +93,12 @@
 .card {
   box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
   border: 1px solid #e2e8f0;
+  margin-bottom: 1.5rem;
 }
 
 .card-primary.card-outline {
   border-left: 4px solid var(--agsus-azul) !important;
+  border-top: 0; /* Remove borda superior padrão do AdminLTE */
 }
 
 /* Tabelas ERP hover */
@@ -64,12 +109,6 @@
 /* Login mantém gradiente AgSUS */
 .login-page {
   background: linear-gradient(135deg, #1e293b 0%, #334155 50%, var(--agsus-azul) 100%);
-}
-
-/* Header limpo ERP */
-.main-header {
-  background: #ffffff !important;
-  box-shadow: 0 1px 10px rgba(0,0,0,0.1);
 }
 
 /* Badge numerador AgSUS */
