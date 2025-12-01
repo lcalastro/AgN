@@ -10,6 +10,8 @@ const SECRET = 'agsus-secret-2025'; // Em prod: use env var
 
 app.use(express.json());
 app.use(express.static('public'));
+app.use('/vendor/adminlte', express.static(path.join(__dirname, 'node_modules/admin-lte/dist')));
+
 
 // Inicializa banco com tabelas novas
 db.exec(`
