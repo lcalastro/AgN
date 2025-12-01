@@ -4,17 +4,28 @@
   --agsus-azul-claro: #007bff;
 }
 
-/* Ajuste de layout dinâmico */
-.content-wrapper {
-  margin-top: 57px !important; /* Altura padrão do header AdminLTE */
-  padding-top: 50px;
-  min-height: calc(100vh - 57px) !important;
+/* Sidebar começando ABAIXO do header */
+.main-sidebar {
+  top: 57px !important; /* Altura padrão do navbar */
+  height: calc(100vh - 57px) !important;
+  padding-top: 10px;
 }
 
-/* Sidebar ERP PROFISSIONAL (azul escuro elegante) */
-.main-sidebar {
-  background: #1e293b !important; /* Cinza escuro ERP */
-  border-right: 1px solid #2d3748;
+/* Ajuste do conteúdo para não colar no topo */
+.content-wrapper {
+  margin-top: 57px !important;
+}
+
+/* Ajuste fino do logo no header */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  font-size: 1.2rem;
+}
+
+/* Remover margem esquerda padrão do AdminLTE quando sidebar está fechada (opcional, melhora visual) */
+.layout-fixed .main-sidebar {
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
 }
 
 /* ACENTO AgSUS sutil na logo */
