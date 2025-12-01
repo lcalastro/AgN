@@ -32,7 +32,7 @@ async function montarShell(usuario) {
     <nav class="main-header navbar navbar-expand navbar-white navbar-light">
       <!-- Logo AgSUS -->
       <a href="#" class="navbar-brand ml-3 mr-3" onclick="mostrarView('gerar')">
-        <img src="/img/Logo-AgN-com-Texto.png"
+        <img src="/img/Logo-AgN.png"
              alt="AgN"
              style="height: 30px; width: auto; margin-right: 10px;">
         <span class="font-weight-bold" style="color: #0056b3;">AgN</span>
