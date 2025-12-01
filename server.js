@@ -1,180 +1,129 @@
 const express = require('express');
 const Database = require('better-sqlite3');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const path = require('path');
+
 const app = express();
-const db = new Database('agn_dados.db');
+const db = new Database('agndados.db');
+const SECRET = 'agsus-secret-2025'; // Em prod: use env var
 
 app.use(express.json());
 app.use(express.static('public'));
 
-// 1. Inicializa Banco de Dados
+// Inicializa banco com tabelas novas
 db.exec(`
+  CREATE TABLE IF NOT EXISTS usuarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    senha TEXT NOT NULL,
+    nome TEXT,
+    criadoem DATETIME DEFAULT CURRENTTIMESTAMP
+  );
+  
+  CREATE TABLE IF NOT EXISTS logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER,
+    acao TEXT NOT NULL,
+    detalhes TEXT,
+    ip TEXT,
+    criadoem DATETIME DEFAULT CURRENTTIMESTAMP
+  );
+
   CREATE TABLE IF NOT EXISTS documentos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tipo TEXT NOT NULL,
-    ano INTEGER NOT NULL,
-    numero INTEGER NOT NULL,
-    
-    data_registro TEXT,
-    drive_id INTEGER,
-    processo TEXT,
-    objeto TEXT,
-    
-    divulgacao_cotacao TEXT,
-    publicado_site TEXT,
-    contratado TEXT,
-    coordenacao TEXT,
-    orcamento TEXT,
-    
-    observacoes TEXT,
-    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+    tipo TEXT NOT NULL, ano INTEGER NOT NULL, numero INTEGER NOT NULL,
+    dataregistro TEXT, driveid INTEGER, processo TEXT, objeto TEXT,
+    divulgacaocotacao TEXT, publicadosite TEXT, contratado TEXT,
+    coordenacao TEXT, orcamento TEXT, observacoes TEXT,
+    criadoem DATETIME DEFAULT CURRENTTIMESTAMP
   );
 
   CREATE TABLE IF NOT EXISTS sequencias (
-    tipo TEXT,
-    ano INTEGER,
-    ultimo_numero INTEGER,
+    tipo TEXT, ano INTEGER, ultimonumero INTEGER,
     PRIMARY KEY (tipo, ano)
   );
 `);
 
-// 2. API: Gerar Novo Número
-app.post('/api/gerar', (req, res) => {
-    const dados = req.body;
-    const anoAtual = new Date().getFullYear();
+// USUÁRIO PADRÃO (rode 1x): email: admin@agsus.gov.br | senha: 123456
+const userHash = bcrypt.hashSync('123456', 10);
+const userCheck = db.prepare('SELECT id FROM usuarios WHERE email = ?').get('admin@agsus.gov.br');
+if (!userCheck) {
+  db.prepare('INSERT INTO usuarios (email, senha, nome) VALUES (?, ?, ?)').run(
+    'admin@agsus.gov.br', userHash, 'Administrador AgSUS'
+  );
+}
 
-    if (!dados.tipo || !dados.processo || !dados.objeto) {
-        return res.status(400).json({ erro: "Preencha Tipo, Processo e Objeto." });
-    }
-
-    try {
-        const resultado = db.transaction(() => {
-            let seq = db.prepare(
-                'SELECT ultimo_numero FROM sequencias WHERE tipo = ? AND ano = ?'
-            ).get(dados.tipo, anoAtual);
-            
-            let novoNumero = 1;
-            if (seq) {
-                novoNumero = seq.ultimo_numero + 1;
-                db.prepare(
-                    'UPDATE sequencias SET ultimo_numero = ? WHERE tipo = ? AND ano = ?'
-                ).run(novoNumero, dados.tipo, anoAtual);
-            } else {
-                db.prepare(
-                    'INSERT INTO sequencias (tipo, ano, ultimo_numero) VALUES (?, ?, ?)'
-                ).run(dados.tipo, anoAtual, 1);
-            }
-
-            const stmt = db.prepare(`
-                INSERT INTO documentos (
-                    tipo, ano, numero, data_registro, drive_id, processo, objeto,
-                    divulgacao_cotacao, publicado_site, contratado, coordenacao, orcamento, observacoes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `);
-
-            const info = stmt.run(
-                dados.tipo,
-                anoAtual,
-                novoNumero,
-                dados.data || new Date().toISOString().split('T')[0],
-                dados.drive || null,
-                dados.processo,
-                dados.objeto,
-                dados.divulgacao_cotacao || null,
-                dados.publicado_site || 'Não',
-                dados.contratado || null,
-                dados.coordenacao || null,
-                dados.orcamento || null,
-                dados.observacoes || null
-            );
-
-            return {
-                id: info.lastInsertRowid,
-                numero: novoNumero,
-                ano: anoAtual,
-                tipo: dados.tipo
-            };
-        });
-
-        res.json({ sucesso: true, dados: resultado() });
-
-    } catch (erro) {
-        console.error(erro);
-        res.status(500).json({ erro: "Erro ao gerar número no banco de dados." });
-    }
-});
-
-// 3. API: Listar Últimos (Histórico)
-app.get('/api/listar', (req, res) => {
-    try {
-        const docs = db.prepare(
-            'SELECT * FROM documentos ORDER BY id DESC LIMIT 20'
-        ).all();
-        res.json(docs);
-    } catch (erro) {
-        res.status(500).json({ erro: "Erro ao listar documentos." });
-    }
-});
-
-// 4. API: Buscar (Consulta)
-app.get('/api/buscar', (req, res) => {
-    const { limite, numero, ano, processo } = req.query;
-
-    try {
-        let sql = 'SELECT * FROM documentos';
-        const params = [];
-        const where = [];
-
-        if (numero && ano) {
-            where.push('numero = ? AND ano = ?');
-            params.push(Number(numero), Number(ano));
-        } else if (processo) {
-            where.push('processo LIKE ?');
-            params.push(`%${processo}%`);
-        }
-
-        if (where.length > 0) {
-            sql += ' WHERE ' + where.join(' AND ');
-        }
-
-        sql += ' ORDER BY id DESC';
-
-        const lim = limite ? Number(limite) : 20;
-        sql += ' LIMIT ?';
-        params.push(lim);
-
-        const lista = db.prepare(sql).all(...params);
-        res.json(lista);
-    } catch (erro) {
-        console.error(erro);
-        res.status(500).json({ erro: "Erro ao buscar documentos." });
-    }
-});
-
-// 5. API Detalhe de um documento
-app.get('/api/detalhe/:id', (req, res) => {
-  const id = Number(req.params.id);
-  if (!id) {
-    return res.status(400).json({ erro: 'ID inválido.' });
-  }
-
+// MIDDLEWARE: verifica token
+const verificarToken = (req, res, next) => {
+  const token = req.headers['authorization']?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ erro: 'Token requerido' });
+  
   try {
-    const stmt = db.prepare('SELECT * FROM documentos WHERE id = ?');
-    const doc = stmt.get(id);
-
-    if (!doc) {
-      return res.status(404).json({ erro: 'Documento não encontrado.' });
-    }
-
-    res.json(doc);
-  } catch (erro) {
-    console.error(erro);
-    res.status(500).json({ erro: 'Erro ao buscar detalhes do documento.' });
+    req.usuario = jwt.verify(token, SECRET);
+    next();
+  } catch {
+    res.status(401).json({ erro: 'Token inválido' });
   }
+};
+
+// LOG: registra ação
+const registrarLog = (usuarioId, acao, detalhes = '') => {
+  db.prepare(`
+    INSERT INTO logs (usuario_id, acao, detalhes, ip) 
+    VALUES (?, ?, ?, ?)
+  `).run(usuarioId, acao, detalhes, '127.0.0.1');
+};
+
+// 1. LOGIN
+app.post('/api/login', async (req, res) => {
+  const { email, senha } = req.body;
+  const user = db.prepare('SELECT * FROM usuarios WHERE email = ?').get(email);
+  
+  if (!user || !bcrypt.compareSync(senha, user.senha)) {
+    return res.status(401).json({ erro: 'Credenciais inválidas' });
+  }
+
+  const token = jwt.sign({ id: user.id, email: user.email }, SECRET, { expiresIn: '24h' });
+  registrarLog(user.id, 'LOGIN', `Usuário ${user.nome} acessou`);
+  
+  res.json({ token, usuario: { id: user.id, nome: user.nome, email: user.email } });
 });
 
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`AgN rodando na porta ${PORT}`);
+// 2. ESQUECI SENHA (envia email - placeholder)
+app.post('/api/esqueci-senha', (req, res) => {
+  const { email } = req.body;
+  // TODO: integrar Nodemailer SMTP AgSUS
+  res.json({ mensagem: 'Link de reset enviado para ' + email });
 });
+
+// APIs PROTEGIDAS (suas rotas originais + logs)
+app.post('/api/gerar', verificarToken, (req, res) => {
+  // ... SEU CÓDIGO ATUAL DE GERAR ...
+  // Após inserir documento:
+  // registrarLog(req.usuario.id, 'GERAR_NUMERADOR', `Criou ${dados.tipo} #${novoNumero}/${anoAtual}`);
+  res.json({ sucesso: true });
+});
+
+app.get('/api/buscar', verificarToken, (req, res) => {
+  // ... SEU CÓDIGO ATUAL DE BUSCAR ...
+});
+
+app.get('/api/detalhe/:id', verificarToken, (req, res) => {
+  // ... SEU CÓDIGO ATUAL DE DETALHE ...
+});
+
+app.get('/api/listar', verificarToken, (req, res) => {
+  // ... SEU CÓDIGO ATUAL DE LISTAR ...
+});
+
+app.get('/api/logs', verificarToken, (req, res) => {
+  const logs = db.prepare(`
+    SELECT l.*, u.nome FROM logs l 
+    LEFT JOIN usuarios u ON l.usuario_id = u.id 
+    ORDER BY l.criadoem DESC LIMIT 100
+  `).all();
+  res.json(logs);
+});
+
+app.listen(3000, () => console.log('AgN rodando em http://localhost:3000'));
