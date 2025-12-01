@@ -4,6 +4,13 @@
   --agsus-azul-claro: #007bff;
 }
 
+/* Ajuste de layout dinâmico */
+.content-wrapper {
+  margin-top: 57px !important; /* Altura padrão do header AdminLTE */
+  padding-top: 20px;
+  min-height: calc(100vh - 57px) !important;
+}
+
 /* Sidebar ERP PROFISSIONAL (azul escuro elegante) */
 .main-sidebar {
   background: #1e293b !important; /* Cinza escuro ERP */
