@@ -1,43 +1,40 @@
-// Headers com token
-export const headers = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${localStorage.getItem('agn_token')}`
-};
+// Headers com token (montados a cada chamada)
+function buildHeaders(withJson = false) {
+  const token = localStorage.getItem('agn_token');
+  const h = {};
+  if (withJson) h['Content-Type'] = 'application/json';
+  if (token) h['Authorization'] = `Bearer ${token}`;
+  return h;
+}
 
 // API calls com tratamento de erro
 export async function apiPost(endpoint, data) {
-  const resp = await fetch(endpoint, { 
-    method: 'POST', 
-    headers, 
-    body: JSON.stringify(data) 
+  const resp = await fetch(endpoint, {
+    method: 'POST',
+    headers: buildHeaders(true),
+    body: JSON.stringify(data)
   });
-  if (!resp.ok) throw new Error((await resp.json()).erro);
-  return resp.json();
+  const json = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error(json.erro || 'Erro na API');
+  return json;
 }
 
 export async function apiGet(endpoint) {
-  const resp = await fetch(endpoint, { headers });
-  if (!resp.ok) throw new Error((await resp.json()).erro);
-  return resp.json();
+  const resp = await fetch(endpoint, {
+    headers: buildHeaders(false)
+  });
+  const json = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error(json.erro || 'Erro na API');
+  return json;
 }
 
 // Formata data
 export function formatarData(data) {
+  if (!data) return '-';
   return new Date(data).toLocaleDateString('pt-BR');
 }
 
-// Toast notification
+// Toast simples (sem bootstrap)
 export function toast(mensagem, tipo = 'success') {
-  const toast = document.createElement('div');
-  toast.className = `toast align-items-center text-white bg-${tipo === 'error' ? 'danger' : tipo} border-0`;
-  toast.role = 'alert';
-  toast.innerHTML = `
-    <div class="d-flex">
-      <div class="toast-body">${mensagem}</div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-    </div>
-  `;
-  document.body.appendChild(toast);
-  new bootstrap.Toast(toast).show();
-  setTimeout(() => toast.remove(), 5000);
+  alert(mensagem); // simples por enquanto
 }
