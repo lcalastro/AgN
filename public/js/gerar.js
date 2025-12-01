@@ -113,7 +113,8 @@ async function onSubmitGerar(e) {
 
   try {
     const resp = await apiPost('/api/gerar', dados);
-    toast(`Gerado com sucesso: ${resp.dados.tipo} #${resp.dados.numero}/${resp.dados.ano}`);
+    // resp.sucesso === true
+    toast('Gerado com sucesso!');
     form.reset();
     document.getElementById('data').valueAsDate = new Date();
     carregarHistorico();
