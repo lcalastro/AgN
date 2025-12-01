@@ -4,7 +4,9 @@ export async function mostrarLogin() {
       <div class="login-box" style="width: 400px; margin: auto;">
         <div class="card card-outline card-primary">
           <div class="card-header text-center">
-            <h1 style="color: #0056b3; margin: 0;"><i class="fas fa-hashtag"></i> AgN</h1>
+            <img src="/img/Logo-AgN-Sombreado.png"
+                 alt="AgN - Numeração"
+                 style="max-width: 180px; height: auto; margin-bottom: 8px;">
             <p class="mb-0" style="color: #666;">Sistema de Numeração AgSUS</p>
           </div>
           <div class="card-body">
