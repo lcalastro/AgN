@@ -1,0 +1,60 @@
+/* CORES AgSUS SUTIS - MANTER ERP */
+:root {
+  --agsus-azul: #0056b3;
+  --agsus-azul-claro: #007bff;
+}
+
+/* Sidebar ERP PROFISSIONAL (azul escuro elegante) */
+.main-sidebar {
+  background: #1e293b !important; /* Cinza escuro ERP */
+  border-right: 1px solid #2d3748;
+}
+
+/* ACENTO AgSUS sutil na logo */
+.brand-link {
+  background: rgba(0,86,179,0.1) !important;
+  border-bottom: 1px solid rgba(0,86,179,0.2);
+}
+
+/* Botões com azul AgSUS (ERP style) */
+.btn-primary {
+  background: var(--agsus-azul) !important;
+  border-color: var(--agsus-azul) !important;
+  box-shadow: 0 2px 4px rgba(0,86,179,0.3);
+}
+
+.btn-primary:hover {
+  background: #004494 !important;
+  transform: translateY(-1px);
+}
+
+/* Cards ERP com sombra profissional */
+.card {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
+  border: 1px solid #e2e8f0;
+}
+
+.card-primary.card-outline {
+  border-left: 4px solid var(--agsus-azul) !important;
+}
+
+/* Tabelas ERP hover */
+.table-hover tbody tr:hover {
+  background-color: rgba(0,86,179,0.04) !important;
+}
+
+/* Login mantém gradiente AgSUS */
+.login-page {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 50%, var(--agsus-azul) 100%);
+}
+
+/* Header limpo ERP */
+.main-header {
+  background: #ffffff !important;
+  box-shadow: 0 1px 10px rgba(0,0,0,0.1);
+}
+
+/* Badge numerador AgSUS */
+.badge-primary {
+  background: var(--agsus-azul) !important;
+}
