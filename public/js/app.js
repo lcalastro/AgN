@@ -41,7 +41,10 @@ async function montarShell() {
     <!-- Sidebar -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <a href="#" class="brand-link">
-        <span class="brand-text font-weight-light">AgN - AgSUS</span>
+        <img src="/img/Logo-AgN-com-Texto.png"
+             alt="AgN - Numeração"
+             class="brand-image"
+             style="height:32px; width:auto; object-fit:contain; margin-right:8px;">
       </a>
       <div class="sidebar">
         <nav class="mt-2">
