@@ -1,7 +1,9 @@
 export async function mostrarLogin() {
-  document.getElementById('app').innerHTML = `
-    <div class="login-page" style="background: linear-gradient(135deg, #0056b3 0%, #004494 100%); min-height: 100vh; display: flex; align-items: center;">
-      <div class="login-box" style="width: 400px; margin: auto;">
+  const app = document.getElementById('app');
+
+  app.innerHTML = `
+    <div class="login-page" style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+      <div class="login-box" style="width: 400px; max-width: 90%;">
         <div class="card card-outline card-primary">
           <div class="card-header text-center">
             <img src="/img/Logo-AgN-Sombreado.png"
@@ -13,17 +15,21 @@ export async function mostrarLogin() {
             <form id="formLogin">
               <div class="input-group mb-3">
                 <input type="email" id="loginEmail" class="form-control" placeholder="E-mail" required>
-                <div class="input-group-append"><span class="input-group-text"><i class="fas fa-envelope"></i></span></div>
+                <div class="input-group-append">
+                  <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                </div>
               </div>
               <div class="input-group mb-3">
                 <input type="password" id="loginSenha" class="form-control" placeholder="Senha" required>
-                <div class="input-group-append"><span class="input-group-text"><i class="fas fa-lock"></i></span></div>
+                <div class="input-group-append">
+                  <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                </div>
               </div>
               <button type="submit" class="btn btn-primary btn-block">Entrar</button>
             </form>
             
-            <div class="social-auth-links text-center mt-3">
-              <a href="#" class="btn btn-link" onclick="mostrarEsqueciSenha()">
+            <div class="text-center mt-3">
+              <a href="#" class="btn btn-link p-0" onclick="mostrarEsqueciSenha()">
                 <i class="fas fa-key mr-2"></i> Esqueci minha senha
               </a>
             </div>
@@ -46,15 +52,11 @@ export async function mostrarLogin() {
       });
 
       const data = await resp.json();
-      
-      if (!resp.ok) throw new Error(data.erro);
+      if (!resp.ok) throw new Error(data.erro || 'Falha no login');
 
       localStorage.setItem('agn_token', data.token);
       localStorage.setItem('agn_usuario', JSON.stringify(data.usuario));
-      
-      // Recarrega pra mostrar shell
       location.reload();
-      
     } catch (err) {
       alert('Erro: ' + err.message);
     }
@@ -66,19 +68,13 @@ window.mostrarEsqueciSenha = async () => {
   if (!email) return;
   
   try {
-    const resp = await fetch('/api/esqueci-senha', {
+    await fetch('/api/esqueci-senha', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     });
-    alert('Link de reset enviado para ' + email);
+    alert('Se o e-mail estiver cadastrado, um link de reset será enviado.');
   } catch (err) {
     alert('Erro ao enviar link.');
   }
 };
-
-export function initLogin() {
-  // Verifica token válido
-  const token = localStorage.getItem('agn_token');
-  if (!token) return mostrarLogin();
-}
