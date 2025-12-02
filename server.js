@@ -154,6 +154,32 @@ app.delete('/api/usuarios/:id', verificarToken, (req, res) => {
   }
 });
 
+// Atualizar Usuário
+app.put('/api/usuarios/:id', verificarToken, (req, res) => {
+  const id = Number(req.params.id);
+  const { nome, email, senha } = req.body;
+
+  if (!nome || !email) return res.status(400).json({ erro: 'Nome e E-mail são obrigatórios.' });
+
+  try {
+    // Se enviou senha, atualiza tudo. Se não, mantém a senha antiga.
+    if (senha && senha.trim() !== '') {
+      const hash = bcrypt.hashSync(senha, 10);
+      db.prepare('UPDATE usuarios SET nome = ?, email = ?, senha = ? WHERE id = ?')
+        .run(nome, email, hash, id);
+    } else {
+      db.prepare('UPDATE usuarios SET nome = ?, email = ? WHERE id = ?')
+        .run(nome, email, id);
+    }
+
+    registrarLog(req.usuario.id, 'EDITAR_USUARIO', `Alterou dados do usuário ID ${id} (${email})`);
+    res.json({ sucesso: true });
+  } catch (e) {
+    if (e.message.includes('UNIQUE')) return res.status(400).json({ erro: 'E-mail já está em uso.' });
+    res.status(500).json({ erro: e.message });
+  }
+});
+
 // --- ROTAS DE NEGÓCIO (AGN) ---
 
 app.post('/api/gerar', verificarToken, (req, res) => {
