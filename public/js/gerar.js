@@ -4,7 +4,6 @@ export async function initGerar() {
   const content = document.getElementById('content');
   content.innerHTML = `
     <div class="row">
-      <!-- Coluna do Formulário (Esquerda) -->
       <div class="col-lg-8">
         <div class="card card-primary card-outline">
           <div class="card-header">
@@ -13,7 +12,8 @@ export async function initGerar() {
           
           <form id="formAgN">
             <div class="card-body">
-              <!-- Linha 1: Tipo, Data, Processo -->
+              
+              <!-- LINHA 1: Tipo, Data, Processo (Sempre visíveis) -->
               <div class="row">
                 <div class="col-md-4">
                   <div class="form-group">
@@ -50,7 +50,7 @@ export async function initGerar() {
                 </div>
               </div>
 
-              <!-- Linha 2: Objeto (Largo) -->
+              <!-- LINHA 2: Objeto (Sempre visível) -->
               <div class="form-group">
                 <label>Objeto <span class="text-danger">*</span></label>
                 <textarea name="objeto" rows="3" class="form-control"
@@ -59,59 +59,64 @@ export async function initGerar() {
 
               <hr>
 
-              <!-- Linha 3: Campos Específicos (Drive, Site, Divulgação) -->
-              <div class="row">
-                <div class="col-md-4">
-                  <div class="form-group">
-                    <label>ID Drive (Opcional)</label>
-                    <input type="number" name="drive" class="form-control" placeholder="Ex: 1234">
+              <!-- ÁREA DE CAMPOS EXTRAS (Dinâmicos) -->
+              <div id="camposExtras">
+                <div class="row">
+                  <!-- Drive: Serve para quase todos, mas vamos controlar -->
+                  <div class="col-md-4" id="divDrive" style="display:none">
+                    <div class="form-group">
+                      <label>ID Drive</label>
+                      <input type="number" name="drive" class="form-control" placeholder="Ex: 1234">
+                    </div>
                   </div>
-                </div>
 
-                <div class="col-md-4">
-                  <div class="form-group">
-                    <label>Publicado no Site?</label>
-                    <select name="publicadosite" class="form-control">
-                      <option value="Não">Não</option>
-                      <option value="Sim">Sim</option>
-                    </select>
+                  <!-- Site: Para pregão, cotação -->
+                  <div class="col-md-4" id="divSite" style="display:none">
+                    <div class="form-group">
+                      <label>Publicado no Site?</label>
+                      <select name="publicadosite" class="form-control">
+                        <option value="Não">Não</option>
+                        <option value="Sim">Sim</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
 
-                <div class="col-md-4">
-                  <div class="form-group">
-                    <label>Divulgação Cotação</label>
-                    <input type="date" name="divulgacaocotacao" class="form-control">
+                  <!-- Divulgação: Apenas Cotação -->
+                  <div class="col-md-4" id="divDivulgacao" style="display:none">
+                    <div class="form-group">
+                      <label>Divulgação Cotação</label>
+                      <input type="date" name="divulgacaocotacao" class="form-control">
+                    </div>
+                  </div>
+                  
+                  <!-- Contratado: Contratos, Atas, Ordens -->
+                  <div class="col-md-6" id="divContratado" style="display:none">
+                    <div class="form-group">
+                      <label>Contratado / Fornecedor</label>
+                      <input type="text" name="contratado" class="form-control" placeholder="Razão Social">
+                    </div>
+                  </div>
+
+                  <!-- Coordenação: Geral -->
+                  <div class="col-md-3" id="divCoordenacao" style="display:none">
+                    <div class="form-group">
+                      <label>Coordenação</label>
+                      <input type="text" name="coordenacao" class="form-control" placeholder="Ex: DITEC">
+                    </div>
+                  </div>
+
+                  <!-- Orçamento: Cotação, Contratos -->
+                  <div class="col-md-3" id="divOrcamento" style="display:none">
+                    <div class="form-group">
+                      <label>Valor / Orçamento</label>
+                      <input type="text" name="orcamento" class="form-control" placeholder="R$ 0,00">
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Linha 4: Contratado, Coordenação, Orçamento -->
-              <div class="row">
-                <div class="col-md-4">
-                  <div class="form-group">
-                    <label>Contratado / Fornecedor</label>
-                    <input type="text" name="contratado" class="form-control" placeholder="Nome da empresa">
-                  </div>
-                </div>
-
-                <div class="col-md-4">
-                  <div class="form-group">
-                    <label>Coordenação</label>
-                    <input type="text" name="coordenacao" class="form-control" placeholder="Ex: DITEC">
-                  </div>
-                </div>
-
-                <div class="col-md-4">
-                  <div class="form-group">
-                    <label>Valor / Orçamento</label>
-                    <input type="text" name="orcamento" class="form-control" placeholder="R$ 0,00">
-                  </div>
-                </div>
-              </div>
-
-              <!-- Observações -->
-              <div class="form-group">
+              <!-- Observações (Sempre visível) -->
+              <div class="form-group mt-2">
                 <label>Observações Gerais</label>
                 <textarea name="observacoes" rows="2" class="form-control"></textarea>
               </div>
@@ -126,7 +131,7 @@ export async function initGerar() {
         </div>
       </div>
 
-      <!-- Coluna do Histórico (Direita) -->
+      <!-- Histórico Lateral -->
       <div class="col-lg-4">
         <div class="card">
           <div class="card-header bg-light">
@@ -149,44 +154,93 @@ export async function initGerar() {
     </div>
   `;
 
-  // Define data de hoje por padrão
   document.getElementById('data').valueAsDate = new Date();
 
-  // Listeners
+  // === EVENTOS ===
   document.getElementById('formAgN').addEventListener('submit', onSubmitGerar);
   
-  // Carrega tabela lateral
+  // Listener para mostrar/ocultar campos
+  const selTipo = document.getElementById('tipo');
+  selTipo.addEventListener('change', () => ajustarCampos(selTipo.value));
+
   carregarHistorico();
+}
+
+// Lógica de Mostrar/Ocultar
+function ajustarCampos(tipo) {
+  // 1. Oculta tudo primeiro e limpa valores (opcional, para não enviar lixo)
+  ['divDrive', 'divSite', 'divDivulgacao', 'divContratado', 'divCoordenacao', 'divOrcamento'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+
+  if (!tipo) return;
+
+  // 2. Define regras baseadas no tipo
+  switch (tipo) {
+    case 'Cotação de Preços':
+      mostrar('divDivulgacao');
+      mostrar('divSite');
+      mostrar('divOrcamento');
+      mostrar('divDrive');
+      break;
+
+    case 'Pregão Eletrônico':
+      mostrar('divSite');
+      mostrar('divDrive');
+      mostrar('divOrcamento');
+      break;
+
+    case 'Contratos':
+    case 'Ata SRP':
+    case 'Ordem de Fornecimento':
+    case 'Inexigibilidade':
+    case 'Contrato de Patrocínio':
+    case 'Acordo de Cooperação':
+      mostrar('divContratado');
+      mostrar('divOrcamento');
+      mostrar('divCoordenacao');
+      mostrar('divDrive');
+      break;
+
+    case 'Credenciamento':
+    case 'Convênio':
+      mostrar('divContratado');
+      mostrar('divCoordenacao');
+      mostrar('divDrive');
+      break;
+      
+    default:
+      // Se for outro tipo, mostra pelo menos Drive e Coordenação
+      mostrar('divDrive');
+      mostrar('divCoordenacao');
+  }
+}
+
+function mostrar(id) {
+  document.getElementById(id).style.display = 'block';
 }
 
 async function onSubmitGerar(e) {
   e.preventDefault();
   const form = e.target;
   const btn = document.getElementById('btnGerar');
-
-  // Coleta dados do form
   const formData = new FormData(form);
   const dados = Object.fromEntries(formData.entries());
 
-  // UI Feedback
   btn.disabled = true;
   const htmlOriginal = btn.innerHTML;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
 
   try {
-    // Envia para o backend
-    const resp = await apiPost('/api/gerar', dados);
-    
-    // Feedback de Sucesso
-    // Se o backend já estiver retornando dados: toast(`Gerado: #${resp.dados.numero}/${resp.dados.ano}`);
-    // Se ainda estiver retornando só sucesso:
+    await apiPost('/api/gerar', dados);
     toast('Número gerado com sucesso!'); 
-    
-    // Limpa form e recarrega
     form.reset();
-    document.getElementById('data').valueAsDate = new Date();
-    carregarHistorico();
     
+    // Resetar data e campos dinâmicos
+    document.getElementById('data').valueAsDate = new Date();
+    ajustarCampos(''); // Esconde tudo de novo
+    
+    carregarHistorico();
   } catch (err) {
     alert('Erro ao gerar: ' + err.message);
   } finally {
@@ -197,16 +251,12 @@ async function onSubmitGerar(e) {
 
 async function carregarHistorico() {
   try {
-    // Busca apenas os últimos 10 para a sidebar lateral
     const lista = await apiGet('/api/listar'); 
     const tbody = document.querySelector('#tabelaHistorico tbody');
-
     if (!lista || !lista.length) {
-      tbody.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-muted">Sem histórico recente.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-muted">Sem histórico.</td></tr>';
       return;
     }
-
-    // Preenche a tabela lateral
     tbody.innerHTML = lista.map(item => `
       <tr>
         <td><span class="badge badge-primary">${item.numero}/${item.ano}</span></td>
@@ -214,7 +264,5 @@ async function carregarHistorico() {
         <td><small>${item.processo || '-'}</small></td>
       </tr>
     `).join('');
-  } catch (e) {
-    console.error('Erro ao atualizar histórico:', e);
-  }
+  } catch (e) { console.error(e); }
 }
