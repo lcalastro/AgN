@@ -121,6 +121,14 @@ window.abrirDetalhesDocumento = async (id) => {
               <p><strong>Orçamento:</strong> ${doc.orcamento || '-'}</p>
               <p><strong>Observações:</strong> ${doc.observacoes || '-'}</p>
             </div>
+            <div class="row mt-3">
+               <div class="col-md-6">
+                  <strong>Criado por:</strong> <br> ${doc.nome_usuario || 'Sistema/Importado'}
+               </div>
+               <div class="col-md-6">
+                  <strong>Em:</strong> <br> ${new Date(doc.criadoem).toLocaleString('pt-BR')}
+               </div>
+            </div>
           </div>
         </div>
       </div>
