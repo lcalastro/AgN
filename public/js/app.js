@@ -1,7 +1,8 @@
 import { mostrarLogin } from './login.js';
 import { initGerar } from './gerar.js';
 import { initConsultar } from './consultar.js';
-import { initUsuarios } from './usuarios.js'; // <--- NOVO IMPORT
+import { initUsuarios } from './usuarios.js';
+import { initPerfil } from './perfil.js';
 
 function getToken() { return localStorage.getItem('agn_token'); }
 function getUsuario() { return JSON.parse(localStorage.getItem('agn_usuario') || '{}'); }
@@ -23,10 +24,11 @@ async function montarShell(usuario) {
   const app = document.getElementById('app');
   
   app.innerHTML = `
+    <!-- Header -->
     <nav class="main-header navbar navbar-expand navbar-white navbar-light">
       <a href="#" class="navbar-brand ml-3 mr-3" onclick="mostrarView('gerar')">
         <img src="/img/Logo-AgN-com-Texto.png" alt="AgN" style="height: 30px; width: auto; margin-right: 10px;">
-        <span class="font-weight-bold" style="color: #0056b3;"></span>
+        <span class="font-weight-bold" style="color: #0056b3;">AgN</span>
       </a>
       <ul class="navbar-nav">
         <li class="nav-item">
@@ -35,14 +37,19 @@ async function montarShell(usuario) {
       </ul>
       <ul class="navbar-nav ml-auto">
         <li class="nav-item">
-          <a class="nav-link" href="#" onclick="logout()">
+          <a class="nav-link" href="#" onclick="mostrarView('perfil')" id="nomeUsuarioHeader" title="Meu Perfil">
             <i class="far fa-user mr-2"></i> ${usuario.nome || 'Usuário'}
-            <span class="float-right text-muted text-sm ml-2"><i class="fas fa-sign-out-alt"></i> Sair</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-danger" href="#" onclick="logout()" title="Sair">
+            <i class="fas fa-sign-out-alt"></i>
           </a>
         </li>
       </ul>
     </nav>
 
+    <!-- Sidebar -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <div class="sidebar">
         <nav class="mt-3">
@@ -51,30 +58,29 @@ async function montarShell(usuario) {
             
             <li class="nav-item">
               <a class="nav-link active" onclick="mostrarView('gerar')" style="cursor: pointer">
-                <i class="nav-icon fas fa-plus"></i>
-                <p>Gerar Numerador</p>
+                <i class="nav-icon fas fa-plus"></i> <p>Gerar Numerador</p>
               </a>
             </li>
             
             <li class="nav-item">
               <a class="nav-link" onclick="mostrarView('consultar')" style="cursor: pointer">
-                <i class="nav-icon fas fa-search"></i>
-                <p>Consultar</p>
+                <i class="nav-icon fas fa-search"></i> <p>Consultar</p>
               </a>
             </li>
 
-            <!-- NOVO ITEM DE MENU -->
+            <!-- SÓ MOSTRA PARA ADMIN -->
+            ${usuario.role === 'ADMIN' ? `
             <li class="nav-item">
               <a class="nav-link" onclick="mostrarView('usuarios')" style="cursor: pointer">
                 <i class="nav-icon fas fa-users"></i>
                 <p>Gerenciar Usuários</p>
               </a>
             </li>
+            ` : ''}
             
             <li class="nav-item">
               <a class="nav-link" onclick="mostrarView('logs')" style="cursor: pointer">
-                <i class="nav-icon fas fa-history"></i>
-                <p>Logs do Sistema</p>
+                <i class="nav-icon fas fa-history"></i> <p>Logs do Sistema</p>
               </a>
             </li>
           </ul>
@@ -117,7 +123,8 @@ window.mostrarView = async (view) => {
   
   if (view === 'gerar') await initGerar();
   else if (view === 'consultar') await initConsultar();
-  else if (view === 'usuarios') await initUsuarios(); // <--- CHAMADA NOVA
+  else if (view === 'usuarios') await initUsuarios();
+  else if (view === 'perfil') await initPerfil();
   else if (view === 'logs') await mostrarLogs();
 };
 
