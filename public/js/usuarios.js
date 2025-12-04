@@ -1,150 +1,58 @@
 import { apiGet, apiPost, toast } from './utils.js';
 
-let usuarioEditandoId = null;
-
+let editId = null;
 export async function initUsuarios() {
-  const content = document.getElementById('content');
-  content.innerHTML = `
-    <div class="row">
-      <div class="col-md-4">
-        <div class="card card-primary card-outline" id="cardFormulario">
-          <div class="card-header">
-            <h3 class="card-title" id="tituloForm">Novo Usuário</h3>
-          </div>
-          <div class="card-body">
-            <form id="formUsuario">
-              <div class="form-group">
-                <label>Nome Completo</label>
-                <input type="text" id="nome" name="nome" class="form-control" required>
-              </div>
-              <div class="form-group">
-                <label>E-mail (Login)</label>
-                <input type="email" id="email" name="email" class="form-control" required>
-              </div>
-              <div class="form-group">
-                <label>Coordenação</label>
-                <input type="text" id="coordenacao" name="coordenacao" class="form-control" placeholder="Ex: CCONT">
-              </div>
-              <div class="form-group">
-                <label>Perfil de Acesso</label>
-                <select name="role" id="role" class="form-control">
-                  <option value="USER">Usuário Comum</option>
-                  <option value="ADMIN">Administrador</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Senha</label>
-                <input type="password" name="senha" class="form-control">
-                <small class="form-text text-muted" id="avisoSenha" style="display:none">Deixe vazio para manter.</small>
-              </div>
-              
-              <div class="d-flex justify-content-between">
-                <button type="button" class="btn btn-default btn-sm" id="btnCancelar" style="display:none" onclick="resetarFormulario()">Cancelar</button>
-                <button type="submit" class="btn btn-success" id="btnSalvar"><i class="fas fa-save"></i> Cadastrar</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-8">
-        <div class="card">
-          <div class="card-header"><h3 class="card-title">Usuários Cadastrados</h3></div>
-          <div class="card-body p-0 table-responsive">
-            <table class="table table-hover" id="tabelaUsuarios">
-              <thead>
-                <tr><th>Nome</th><th>E-mail</th><th>Coord.</th><th>Role</th><th class="text-center">Ações</th></tr>
-              </thead>
-              <tbody><tr><td colspan="5" class="text-center">Carregando...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+  document.getElementById('content').innerHTML = `
+    <div class="row"><div class="col-md-4"><div class="card card-primary card-outline"><div class="card-header"><h3 class="card-title">Usuário</h3></div>
+    <form id="fUser"><div class="card-body">
+      <div class="form-group"><label>Nome</label><input type="text" name="nome" id="nome" class="form-control" required></div>
+      <div class="form-group"><label>E-mail</label><input type="email" name="email" id="email" class="form-control" required></div>
+      <div class="form-group"><label>Coord.</label><input type="text" name="coordenacao" id="coordenacao" class="form-control"></div>
+      <div class="form-group"><label>Perfil</label><select name="role" id="role" class="form-control"><option value="USER">Usuário</option><option value="ADMIN">Admin</option></select></div>
+      <div class="form-group"><label>Senha</label><input type="password" name="senha" class="form-control"><small class="text-muted">Vazio p/ manter</small></div>
+      <button class="btn btn-success btn-block" id="btnS">Salvar</button> <button type="button" class="btn btn-default btn-block" onclick="resetF()" id="btnC" style="display:none">Cancelar</button>
+    </div></form></div></div>
+    <div class="col-md-8"><div class="card"><div class="card-body p-0 table-responsive"><table class="table table-hover" id="tbU"><thead><tr><th>Nome</th><th>Email</th><th>Role</th><th>Ação</th></tr></thead><tbody></tbody></table></div></div></div></div>
   `;
-
-  document.getElementById('formUsuario').addEventListener('submit', salvarUsuario);
-  window.editarUsuario = prepararEdicao;
-  window.deletarUsuario = deletarUsuario;
-  window.resetarFormulario = resetarFormulario;
-  carregarUsuarios();
+  document.getElementById('fUser').addEventListener('submit', save);
+  window.resetF = reset; window.editU = edit; window.delU = del;
+  load();
 }
 
-async function carregarUsuarios() {
-  try {
-    const lista = await apiGet('/api/usuarios');
-    const tbody = document.querySelector('#tabelaUsuarios tbody');
-    const usuarioLogado = JSON.parse(localStorage.getItem('agn_usuario') || '{}');
-
-    tbody.innerHTML = lista.map(u => `
-      <tr>
-        <td>${u.nome}</td>
-        <td>${u.email}</td>
-        <td>${u.coordenacao || '-'}</td>
-        <td><span class="badge badge-${u.role === 'ADMIN' ? 'danger' : 'info'}">${u.role}</span></td>
-        <td class="text-center">
-          <button class="btn btn-xs btn-info mr-1" onclick="editarUsuario('${u.id}', '${u.nome}', '${u.email}', '${u.coordenacao||''}', '${u.role||'USER'}')"><i class="fas fa-pen"></i></button>
-          ${u.id !== usuarioLogado.id ? `<button class="btn btn-xs btn-danger" onclick="deletarUsuario(${u.id})"><i class="fas fa-trash"></i></button>` : ''}
-        </td>
-      </tr>
-    `).join('');
-  } catch (e) { alert(e.message); }
+async function load() {
+  const l = await apiGet('/api/usuarios');
+  const me = JSON.parse(localStorage.getItem('agn_usuario')).id;
+  document.querySelector('#tbU tbody').innerHTML = l.map(u => `<tr><td>${u.nome}</td><td>${u.email}</td><td>${u.role}</td><td><button class="btn btn-xs btn-info" onclick="editU('${u.id}','${u.nome}','${u.email}','${u.coordenacao||''}','${u.role}')"><i class="fas fa-pen"></i></button> ${u.id!=me ? `<button class="btn btn-xs btn-danger" onclick="delU(${u.id})"><i class="fas fa-trash"></i></button>`:''}</td></tr>`).join('');
 }
 
-function prepararEdicao(id, nome, email, coordenacao, role) {
-  usuarioEditandoId = id;
-  document.getElementById('nome').value = nome;
-  document.getElementById('email').value = email;
-  document.getElementById('coordenacao').value = coordenacao;
-  document.getElementById('role').value = role;
-  
-  document.getElementById('tituloForm').innerText = 'Editar Usuário';
-  document.getElementById('cardFormulario').className = 'card card-warning card-outline';
-  document.getElementById('btnSalvar').innerHTML = '<i class="fas fa-check"></i> Salvar';
-  document.getElementById('btnCancelar').style.display = 'inline-block';
-  document.getElementById('avisoSenha').style.display = 'block';
+function edit(id, n, e, c, r) {
+  editId = id;
+  document.getElementById('nome').value=n; document.getElementById('email').value=e;
+  document.getElementById('coordenacao').value=c; document.getElementById('role').value=r;
+  document.getElementById('btnS').innerText='Atualizar'; document.getElementById('btnC').style.display='block';
 }
 
-function resetarFormulario() {
-  usuarioEditandoId = null;
-  document.getElementById('formUsuario').reset();
-  document.getElementById('tituloForm').innerText = 'Novo Usuário';
-  document.getElementById('cardFormulario').className = 'card card-success card-outline';
-  document.getElementById('btnSalvar').innerHTML = '<i class="fas fa-save"></i> Cadastrar';
-  document.getElementById('btnCancelar').style.display = 'none';
-  document.getElementById('avisoSenha').style.display = 'none';
+function reset() {
+  editId = null; document.getElementById('fUser').reset();
+  document.getElementById('btnS').innerText='Salvar'; document.getElementById('btnC').style.display='none';
 }
 
-async function salvarUsuario(e) {
+async function save(e) {
   e.preventDefault();
-  const form = e.target;
-  const dados = Object.fromEntries(new FormData(form).entries());
+  const d = Object.fromEntries(new FormData(e.target));
   try {
+    const url = editId ? `/api/usuarios/${editId}` : '/api/usuarios';
+    const m = editId ? 'PUT' : 'POST';
     const token = localStorage.getItem('agn_token');
-    let url = '/api/usuarios';
-    let method = 'POST';
-    if (usuarioEditandoId) { url = `/api/usuarios/${usuarioEditandoId}`; method = 'PUT'; }
-
-    const resp = await fetch(url, {
-      method: method,
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(dados)
-    });
-    if (!resp.ok) throw new Error((await resp.json()).erro);
-
-    toast(usuarioEditandoId ? 'Atualizado!' : 'Criado!');
-    resetarFormulario();
-    carregarUsuarios();
-  } catch (erro) { alert(erro.message); }
+    const r = await fetch(url, { method: m, headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${token}`}, body: JSON.stringify(d) });
+    if(!r.ok) throw new Error((await r.json()).erro);
+    toast('Salvo!'); reset(); load();
+  } catch(err){ alert(err.message); }
 }
 
-async function deletarUsuario(id) {
-  if (!confirm('Confirma exclusão?')) return;
-  try {
-    const token = localStorage.getItem('agn_token');
-    const resp = await fetch(`/api/usuarios/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-    if (!resp.ok) throw new Error((await resp.json()).erro);
-    toast('Removido.');
-    carregarUsuarios();
-  } catch (e) { alert(e.message); }
+async function del(id) {
+  if(!confirm('Excluir?')) return;
+  const token = localStorage.getItem('agn_token');
+  await fetch(`/api/usuarios/${id}`, { method: 'DELETE', headers: {'Authorization': `Bearer ${token}`} });
+  toast('Excluído'); load();
 }
