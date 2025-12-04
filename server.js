@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 
 const app = express();
-const db = new Database('agndados.db');
+let db = new Database('agndados.db');
 const SECRET = 'agsus-secret-2025'; 
 
 app.use(express.json());
@@ -273,7 +273,68 @@ app.get('/api/logs', verificarToken, (req, res) => {
   } catch (e) { res.status(500).json({ erro: e.message }); }
 });
 
-// BLOCO DE IMPORTAÇÃO EXCEL (Se necessário, cole aqui)
+const fs = require('fs');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' }); // Pasta temporária
 
+// ... (resto dos imports e configs) ...
+
+// ROTA DE BACKUP (Download do banco)
+app.get('/api/backup', verificarToken, apenasAdmin, (req, res) => {
+  const dbPath = 'agndados.db';
+  if (fs.existsSync(dbPath)) {
+    res.download(dbPath, `backup_agn_${new Date().toISOString().split('T')[0]}.db`);
+  } else {
+    res.status(404).json({ erro: 'Banco de dados não encontrado.' });
+  }
+});
+
+// ROTA DE RESTORE (Upload do banco)
+app.post('/api/restore', verificarToken, apenasAdmin, upload.single('backup'), (req, res) => {
+  if (!req.file) return res.status(400).json({ erro: 'Nenhum arquivo enviado.' });
+
+  try {
+    const dbPath = 'agndados.db';
+    
+    // 1. Fecha a conexão atual para liberar o arquivo (importante no Windows/Local, no Linux ajuda tb)
+    db.close();
+
+    // 2. Substitui o arquivo
+    fs.copyFileSync(req.file.path, dbPath);
+    
+    // 3. Apaga o arquivo temporário do upload
+    fs.unlinkSync(req.file.path);
+
+    // 4. Reabre a conexão com o novo banco
+    // Atenção: Como db é const global, precisamos recarregar. 
+    // O jeito mais simples num deploy efêmero é pedir pro Admin reiniciar ou crashar o app propositalmente
+    // para o Render subir de novo limpo com o arquivo novo.
+    // Mas vamos tentar reabrir a conexão na mesma variável (se mudar `const db` para `let db`).
+    
+    // Ajuste lá no topo do arquivo: mude `const db` para `let db`.
+    // db = new Database('agndados.db'); // Reabre
+    
+    // Workaround rápido: Enviar msg de sucesso e pedir restart, 
+    // mas como o Render não reinicia sozinho por comando, vamos tentar reabrir aqui.
+    
+    // RECOMENDAÇÃO: Mude `const db = ...` para `let db = ...` no início do arquivo.
+    // E aqui:
+    /*
+       db = new Database('agndados.db');
+       // Recarrega tabelas se necessário (geralmente não precisa pois já vem no arquivo)
+    */
+
+    res.json({ sucesso: true, mensagem: 'Backup restaurado! Recomendado reiniciar a aplicação.' });
+    
+    // Força restart do processo (o Render vai subir ele de novo automaticamente em segundos)
+    setTimeout(() => process.exit(0), 1000); 
+
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ erro: 'Erro ao restaurar backup: ' + e.message });
+  }
+});
+
+// BLOCO DE IMPORTAÇÃO EXCEL (Se necessário, cole aqui)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('AgN rodando na porta ' + PORT));
