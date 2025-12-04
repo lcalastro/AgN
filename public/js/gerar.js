@@ -1,4 +1,4 @@
-import { apiPost, apiGet, toast, formatarData } from './utils.js';
+import { apiPost, apiGet, toast } from './utils.js';
 
 export async function initGerar() {
   const content = document.getElementById('content');
@@ -13,7 +13,7 @@ export async function initGerar() {
           <form id="formAgN">
             <div class="card-body">
               
-              <!-- LINHA 1: Tipo, Data, Processo (Sempre visíveis) -->
+              <!-- LINHA 1: Tipo, Data, Processo -->
               <div class="row">
                 <div class="col-md-4">
                   <div class="form-group">
@@ -44,81 +44,83 @@ export async function initGerar() {
                 <div class="col-md-5">
                   <div class="form-group">
                     <label>Processo SEI <span class="text-danger">*</span></label>
-                    <input type="text" name="processo" class="form-control"
+                    <input type="text" id="processo" name="processo" class="form-control"
                            placeholder="Ex: AGSUS.007637/2025-93" required>
                   </div>
                 </div>
               </div>
 
-              <!-- LINHA 2: Objeto (Sempre visível) -->
+              <!-- Objeto -->
               <div class="form-group">
                 <label>Objeto <span class="text-danger">*</span></label>
-                <textarea name="objeto" rows="3" class="form-control"
+                <textarea id="objeto" name="objeto" rows="3" class="form-control"
                           placeholder="Descrição detalhada do objeto..." required></textarea>
               </div>
 
               <hr>
 
-              <!-- ÁREA DE CAMPOS EXTRAS (Dinâmicos) -->
-              <div id="camposExtras">
-                <div class="row">
-                  <!-- Drive: Serve para quase todos, mas vamos controlar -->
-                  <div class="col-md-4" id="divDrive" style="display:none">
-                    <div class="form-group">
-                      <label>ID Drive</label>
-                      <input type="number" name="drive" class="form-control" placeholder="Ex: 1234">
-                    </div>
+              <!-- CAMPOS EXTRAS (controlados por tipo) -->
+              <div class="row">
+                <!-- Drive -->
+                <div class="col-md-4 campo-extra" id="grupo-drive">
+                  <div class="form-group">
+                    <label>ID Drive (Opcional)</label>
+                    <input type="number" id="drive" name="drive" class="form-control" placeholder="Ex: 375">
                   </div>
+                </div>
 
-                  <!-- Site: Para pregão, cotação -->
-                  <div class="col-md-4" id="divSite" style="display:none">
-                    <div class="form-group">
-                      <label>Publicado no Site?</label>
-                      <select name="publicadosite" class="form-control">
-                        <option value="Não">Não</option>
-                        <option value="Sim">Sim</option>
-                      </select>
-                    </div>
+                <!-- Divulgação da Cotação -->
+                <div class="col-md-4 campo-extra" id="grupo-divulgacao">
+                  <div class="form-group">
+                    <label>Divulgação da Cotação</label>
+                    <select id="divulgacaocotacao" name="divulgacaocotacao" class="form-control">
+                      <option value="">Selecione...</option>
+                      <option value="E-Mail">E-Mail</option>
+                      <option value="Compras Gov">Compras Gov</option>
+                    </select>
                   </div>
+                </div>
 
-                  <!-- Divulgação: Apenas Cotação -->
-                  <div class="col-md-4" id="divDivulgacao" style="display:none">
-                    <div class="form-group">
-                      <label>Divulgação Cotação</label>
-                      <input type="date" name="divulgacaocotacao" class="form-control">
-                    </div>
+                <!-- Publicado no Site -->
+                <div class="col-md-4 campo-extra" id="grupo-site">
+                  <div class="form-group">
+                    <label>Publicado no site da AgSUS</label>
+                    <select id="publicadosite" name="publicadosite" class="form-control">
+                      <option value="Não">Não</option>
+                      <option value="Sim">Sim</option>
+                    </select>
                   </div>
-                  
-                  <!-- Contratado: Contratos, Atas, Ordens -->
-                  <div class="col-md-6" id="divContratado" style="display:none">
-                    <div class="form-group">
-                      <label>Contratado / Fornecedor</label>
-                      <input type="text" name="contratado" class="form-control" placeholder="Razão Social">
-                    </div>
-                  </div>
+                </div>
 
-                  <!-- Coordenação: Geral -->
-                  <div class="col-md-3" id="divCoordenacao" style="display:none">
-                    <div class="form-group">
-                      <label>Coordenação</label>
-                      <input type="text" name="coordenacao" class="form-control" placeholder="Ex: DITEC">
-                    </div>
+                <!-- Contratado -->
+                <div class="col-md-6 campo-extra" id="grupo-contratado">
+                  <div class="form-group">
+                    <label>Contratado / Fornecedor</label>
+                    <input type="text" id="contratado" name="contratado" class="form-control" placeholder="Razão Social">
                   </div>
+                </div>
 
-                  <!-- Orçamento: Cotação, Contratos -->
-                  <div class="col-md-3" id="divOrcamento" style="display:none">
-                    <div class="form-group">
-                      <label>Valor / Orçamento</label>
-                      <input type="text" name="orcamento" class="form-control" placeholder="R$ 0,00">
-                    </div>
+                <!-- Coordenação -->
+                <div class="col-md-3 campo-extra" id="grupo-coordenacao">
+                  <div class="form-group">
+                    <label>Coordenação</label>
+                    <input type="text" id="coordenacao" name="coordenacao" class="form-control" placeholder="Ex: CCONT, DITEC">
+                  </div>
+                </div>
+
+                <!-- Orçamento -->
+                <div class="col-md-3 campo-extra" id="grupo-orcamento">
+                  <div class="form-group">
+                    <label>Orçamento</label>
+                    <input type="text" id="orcamento" name="orcamento" class="form-control" placeholder="R$ 0,00">
                   </div>
                 </div>
               </div>
 
-              <!-- Observações (Sempre visível) -->
-              <div class="form-group mt-2">
-                <label>Observações Gerais</label>
-                <textarea name="observacoes" rows="2" class="form-control"></textarea>
+              <!-- Observações -->
+              <div class="form-group mt-2 campo-extra" id="grupo-observacoes">
+                <label>Observações</label>
+                <textarea id="observacoes" name="observacoes" rows="2" class="form-control"></textarea>
               </div>
             </div>
 
@@ -131,7 +133,7 @@ export async function initGerar() {
         </div>
       </div>
 
-      <!-- Histórico Lateral -->
+      <!-- HISTÓRICO -->
       <div class="col-lg-4">
         <div class="card">
           <div class="card-header bg-light">
@@ -154,76 +156,119 @@ export async function initGerar() {
     </div>
   `;
 
+  // Data de hoje
   document.getElementById('data').valueAsDate = new Date();
 
-  // === EVENTOS ===
+  // Eventos
   document.getElementById('formAgN').addEventListener('submit', onSubmitGerar);
-  
-  // Listener para mostrar/ocultar campos
+
   const selTipo = document.getElementById('tipo');
-  selTipo.addEventListener('change', () => ajustarCampos(selTipo.value));
+  selTipo.addEventListener('change', () => configurarCamposPorTipo(selTipo.value));
+
+  // Aplica configuração inicial (nada selecionado)
+  configurarCamposPorTipo('');
 
   carregarHistorico();
 }
 
-// Lógica de Mostrar/Ocultar
-function ajustarCampos(tipo) {
-  // 1. Oculta tudo primeiro e limpa valores (opcional, para não enviar lixo)
-  ['divDrive', 'divSite', 'divDivulgacao', 'divContratado', 'divCoordenacao', 'divOrcamento'].forEach(id => {
-    document.getElementById(id).style.display = 'none';
+// Controla visibilidade + obrigatoriedade por tipo
+function configurarCamposPorTipo(tipo) {
+  const grupos = {
+    drive: document.getElementById('grupo-drive'),
+    divulgacao: document.getElementById('grupo-divulgacao'),
+    site: document.getElementById('grupo-site'),
+    contratado: document.getElementById('grupo-contratado'),
+    coordenacao: document.getElementById('grupo-coordenacao'),
+    orcamento: document.getElementById('grupo-orcamento'),
+    observacoes: document.getElementById('grupo-observacoes')
+  };
+
+  const campos = {
+    drive: document.getElementById('drive'),
+    divulgacaocotacao: document.getElementById('divulgacaocotacao'),
+    publicadosite: document.getElementById('publicadosite'),
+    contratado: document.getElementById('contratado'),
+    coordenacao: document.getElementById('coordenacao'),
+    orcamento: document.getElementById('orcamento'),
+    observacoes: document.getElementById('observacoes'),
+    data: document.getElementById('data'),
+    processo: document.getElementById('processo'),
+    objeto: document.getElementById('objeto')
+  };
+
+  // Esconde todos extras e remove required
+  Object.values(grupos).forEach(div => { if (div) div.style.display = 'none'; });
+  Object.values(campos).forEach(campo => {
+    if (!campo) return;
+    campo.required = false;
   });
+
+  // Campos base sempre obrigatórios
+  campos.data.required = true;
+  campos.processo.required = true;
+  campos.objeto.required = true;
 
   if (!tipo) return;
 
-  // 2. Define regras baseadas no tipo
+  // Aplica regras por tipo
   switch (tipo) {
     case 'Cotação de Preços':
-      mostrar('divDivulgacao');
-      mostrar('divSite');
-      mostrar('divOrcamento');
-      mostrar('divDrive');
+      mostrar(grupos.drive);
+      mostrar(grupos.divulgacao);
+      mostrar(grupos.site);
+      mostrar(grupos.observacoes);
+      // nada extra obrigatório além dos 3 base
       break;
 
     case 'Pregão Eletrônico':
-      mostrar('divSite');
-      mostrar('divDrive');
-      mostrar('divOrcamento');
+      mostrar(grupos.drive);
+      mostrar(grupos.site);
+      mostrar(grupos.observacoes);
       break;
 
-    case 'Contratos':
     case 'Ata SRP':
-    case 'Ordem de Fornecimento':
-    case 'Inexigibilidade':
-    case 'Contrato de Patrocínio':
-    case 'Acordo de Cooperação':
-      mostrar('divContratado');
-      mostrar('divOrcamento');
-      mostrar('divCoordenacao');
-      mostrar('divDrive');
+      mostrar(grupos.drive);
+      mostrar(grupos.contratado);
+      mostrar(grupos.coordenacao);
+      mostrar(grupos.observacoes);
+      campos.contratado.required = true; // Contratado obrigatório
       break;
 
     case 'Credenciamento':
     case 'Convênio':
-      mostrar('divContratado');
-      mostrar('divCoordenacao');
-      mostrar('divDrive');
+      mostrar(grupos.drive);
+      mostrar(grupos.orcamento);
+      mostrar(grupos.site);
+      mostrar(grupos.observacoes);
+      // orçamento não é obrigatório, só exibido
       break;
-      
+
+    case 'Ordem de Fornecimento':
+    case 'Contratos':
+    case 'Inexigibilidade':
+    case 'Contrato de Patrocínio':
+    case 'Acordo de Cooperação':
+      mostrar(grupos.drive);
+      mostrar(grupos.coordenacao);
+      mostrar(grupos.observacoes);
+      break;
+
     default:
-      // Se for outro tipo, mostra pelo menos Drive e Coordenação
-      mostrar('divDrive');
-      mostrar('divCoordenacao');
+      // fallback: só drive + observações
+      mostrar(grupos.drive);
+      mostrar(grupos.observacoes);
   }
 }
 
-function mostrar(id) {
-  document.getElementById(id).style.display = 'block';
+function mostrar(div) {
+  if (div) div.style.display = 'block';
 }
 
 async function onSubmitGerar(e) {
   e.preventDefault();
   const form = e.target;
   const btn = document.getElementById('btnGerar');
+
   const formData = new FormData(form);
   const dados = Object.fromEntries(formData.entries());
 
@@ -233,13 +278,10 @@ async function onSubmitGerar(e) {
 
   try {
     await apiPost('/api/gerar', dados);
-    toast('Número gerado com sucesso!'); 
+    toast('Número gerado com sucesso!');
     form.reset();
-    
-    // Resetar data e campos dinâmicos
     document.getElementById('data').valueAsDate = new Date();
-    ajustarCampos(''); // Esconde tudo de novo
-    
+    configurarCamposPorTipo(''); // volta ao estado inicial
     carregarHistorico();
   } catch (err) {
     alert('Erro ao gerar: ' + err.message);
@@ -251,7 +293,7 @@ async function onSubmitGerar(e) {
 
 async function carregarHistorico() {
   try {
-    const lista = await apiGet('/api/listar'); 
+    const lista = await apiGet('/api/listar');
     const tbody = document.querySelector('#tabelaHistorico tbody');
     if (!lista || !lista.length) {
       tbody.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-muted">Sem histórico.</td></tr>';
@@ -264,5 +306,7 @@ async function carregarHistorico() {
         <td><small>${item.processo || '-'}</small></td>
       </tr>
     `).join('');
-  } catch (e) { console.error(e); }
+  } catch (e) {
+    console.error('Erro ao carregar histórico:', e);
+  }
 }
