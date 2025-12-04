@@ -69,16 +69,16 @@ const checkSeq = db.prepare('SELECT COUNT(*) as c FROM sequencias WHERE ano = 20
 if (checkSeq === 0) {
   const initSeqs = db.prepare('INSERT INTO sequencias (tipo, ano, ultimonumero) VALUES (?, ?, ?)');
   const sequenciasIniciais = [
-    { tipo: 'Cotação de Preços', num: 472 },
-    { tipo: 'Pregão Eletrônico', num: 90019 },
-    { tipo: 'Ata SRP', num: 25 },
-    { tipo: 'Credenciamento', num: 32 },
-    { tipo: 'Convênio', num: 1 },
-    { tipo: 'Ordem de Fornecimento', num: 507 },
-    { tipo: 'Contratos', num: 337 },
-    { tipo: 'Inexigibilidade', num: 2 },
-    { tipo: 'Contrato de Patrocínio', num: 2 },
-    { tipo: 'Acordo de Cooperação', num: 2 }
+    { tipo: 'Cotação de Preços', num: 471 },
+    { tipo: 'Pregão Eletrônico', num: 90018 },
+    { tipo: 'Ata SRP', num: 24 },
+    { tipo: 'Credenciamento', num: 31 },
+    { tipo: 'Convênio', num: 0 },
+    { tipo: 'Ordem de Fornecimento', num: 506 },
+    { tipo: 'Contratos', num: 336 },
+    { tipo: 'Inexigibilidade', num: 1 },
+    { tipo: 'Contrato de Patrocínio', num: 1 },
+    { tipo: 'Acordo de Cooperação', num: 1 }
   ];
 
   sequenciasIniciais.forEach(s => {
