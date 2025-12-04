@@ -163,3 +163,132 @@ app.post('/api/restore', verificarToken, apenasAdmin, upload.single('backup'), (
   if (!req.file) return res.status(400).json({ erro: 'Sem arquivo.' });
   try {
     const sqlContent = fs.readFileSync(req.file.path, 'utf-8');
+    db.exec(sqlContent);
+    fs.unlinkSync(req.file.path);
+    
+    // LOG APÓS RESTORE (Não será perdido pois o restore não apaga logs se estiverem no SQL, 
+    // mas o comando acima insere um log NOVO pós-restore)
+    registrarLog(req.usuario.id, 'BACKUP_RESTORE', 'Restaurou banco via SQL.'); 
+    
+    res.json({ sucesso: true });
+  } catch (e) { res.status(500).json({ erro: e.message }); }
+});
+
+
+// --- ROTAS DE NEGÓCIO ---
+
+app.post('/api/gerar', verificarToken, (req, res) => {
+  const dados = req.body;
+  const anoAtual = new Date().getFullYear(); // Pega ano atual
+  // Se mudar o ano (2026), o SELECT abaixo não acha registro, então novoNumero = 1.
+
+  if (!dados.tipo || !dados.processo || !dados.objeto) return res.status(400).json({ erro: 'Campos obrigatórios faltando.' });
+
+  try {
+    const resultado = db.transaction(() => {
+      let seq = db.prepare('SELECT ultimonumero FROM sequencias WHERE tipo = ? AND ano = ?').get(dados.tipo, anoAtual);
+      let novoNumero = seq ? seq.ultimonumero + 1 : 1; // Se não existir seq para o ano, começa em 1
+
+      if (seq) db.prepare('UPDATE sequencias SET ultimonumero = ? WHERE tipo = ? AND ano = ?').run(novoNumero, dados.tipo, anoAtual);
+      else db.prepare('INSERT INTO sequencias (tipo, ano, ultimonumero) VALUES (?, ?, ?)').run(dados.tipo, anoAtual, novoNumero); // Cria novo ano começando do 1 (ou do valor passado se não fosse seq. 1)
+
+      const stmt = db.prepare(`INSERT INTO documentos (tipo, ano, numero, usuario_id, dataregistro, driveid, processo, objeto, divulgacaocotacao, publicadosite, contratado, coordenacao, orcamento, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+      
+      // Inserindo usuario_id
+      const info = stmt.run(
+        dados.tipo, anoAtual, novoNumero, req.usuario.id, 
+        dados.data, dados.drive, dados.processo, dados.objeto, 
+        dados.divulgacaocotacao, dados.publicadosite, dados.contratado, 
+        dados.coordenacao, dados.orcamento, dados.observacoes
+      );
+
+      registrarLog(req.usuario.id, 'GERAR_NUMERADOR', `Criou ${dados.tipo} #${novoNumero}/${anoAtual}`);
+      return { id: info.lastInsertRowid, numero: novoNumero, ano: anoAtual, tipo: dados.tipo };
+    })();
+
+    res.json({ sucesso: true, dados: resultado });
+  } catch (erro) { res.status(500).json({ erro: 'Erro ao gerar.' }); }
+});
+
+// LISTAR (JOIN com usuarios para mostrar nome)
+app.get('/api/listar', verificarToken, (req, res) => {
+  try {
+    const docs = db.prepare(`
+      SELECT d.*, u.nome as nome_usuario 
+      FROM documentos d 
+      LEFT JOIN usuarios u ON d.usuario_id = u.id 
+      ORDER BY d.id DESC LIMIT 20
+    `).all();
+    res.json(docs);
+  } catch (e) { res.status(500).json({ erro: e.message }); }
+});
+
+// DETALHE (JOIN com usuarios)
+app.get('/api/detalhe/:id', verificarToken, (req, res) => {
+  try {
+    const doc = db.prepare(`
+      SELECT d.*, u.nome as nome_usuario 
+      FROM documentos d 
+      LEFT JOIN usuarios u ON d.usuario_id = u.id 
+      WHERE d.id = ?
+    `).get(req.params.id);
+    if (!doc) return res.status(404).json({ erro: 'Não encontrado.' });
+    res.json(doc);
+  } catch (e) { res.status(500).json({ erro: e.message }); }
+});
+
+// BUSCAR
+app.get('/api/buscar', verificarToken, (req, res) => {
+  const { limite, numero, ano, processo } = req.query;
+  let sql = `SELECT d.*, u.nome as nome_usuario FROM documentos d LEFT JOIN usuarios u ON d.usuario_id = u.id`;
+  const p = [], w = [];
+  
+  if (numero && ano) { w.push('d.numero = ? AND d.ano = ?'); p.push(Number(numero), Number(ano)); }
+  else if (processo) { w.push('d.processo LIKE ?'); p.push(`%${processo}%`); }
+
+  if (w.length) sql += ' WHERE ' + w.join(' AND ');
+  sql += ' ORDER BY d.id DESC LIMIT ?';
+  p.push(limite || 20);
+
+  try { res.json(db.prepare(sql).all(...p)); } catch(e){ res.status(500).json({erro:e.message}); }
+});
+
+// ... Resto das rotas (login, usuarios, logs) iguais ao anterior ...
+// (Mantive login, usuarios e logs abaixo para não quebrar, mas são iguais)
+
+app.post('/api/login', (req, res) => {
+  const { email, senha } = req.body;
+  const user = db.prepare('SELECT * FROM usuarios WHERE email = ?').get(email);
+  if (!user || !bcrypt.compareSync(senha, user.senha)) return res.status(401).json({ erro: 'Credenciais inválidas' });
+  const token = jwt.sign({ id: user.id, email: user.email }, SECRET, { expiresIn: '24h' });
+  registrarLog(user.id, 'LOGIN', `Entrou: ${user.nome}`);
+  res.json({ token, usuario: { id: user.id, nome: user.nome, email: user.email, coordenacao: user.coordenacao, role: user.role } });
+});
+
+app.get('/api/usuarios', verificarToken, apenasAdmin, (req, res) => { res.json(db.prepare('SELECT id,nome,email,coordenacao,role,criadoem FROM usuarios ORDER BY nome').all()); });
+app.post('/api/usuarios', verificarToken, apenasAdmin, (req, res) => {
+  const { nome, email, senha, coordenacao, role } = req.body;
+  try { db.prepare('INSERT INTO usuarios (nome, email, senha, coordenacao, role) VALUES (?,?,?,?,?)').run(nome, email, bcrypt.hashSync(senha,10), coordenacao, role||'USER'); registrarLog(req.usuario.id,'CRIAR_USER',email); res.json({sucesso:true}); } catch(e){ res.status(400).json({erro:e.message}); }
+});
+app.put('/api/usuarios/:id', verificarToken, apenasAdmin, (req, res) => {
+  const { nome, email, senha, coordenacao, role } = req.body;
+  try {
+    if(senha) db.prepare('UPDATE usuarios SET nome=?, email=?, senha=?, coordenacao=?, role=? WHERE id=?').run(nome, email, bcrypt.hashSync(senha,10), coordenacao, role, req.params.id);
+    else db.prepare('UPDATE usuarios SET nome=?, email=?, coordenacao=?, role=? WHERE id=?').run(nome, email, coordenacao, role, req.params.id);
+    res.json({sucesso:true});
+  } catch(e){ res.status(500).json({erro:e.message}); }
+});
+app.delete('/api/usuarios/:id', verificarToken, apenasAdmin, (req, res) => {
+  if(Number(req.params.id)===req.usuario.id) return res.status(400).json({erro:'Erro auto-exclusão'});
+  db.prepare('DELETE FROM usuarios WHERE id=?').run(req.params.id); res.json({sucesso:true});
+});
+app.put('/api/perfil', verificarToken, (req, res) => {
+  const { nome, senha, coordenacao } = req.body;
+  if(senha) db.prepare('UPDATE usuarios SET nome=?, senha=?, coordenacao=? WHERE id=?').run(nome, bcrypt.hashSync(senha,10), coordenacao, req.usuario.id);
+  else db.prepare('UPDATE usuarios SET nome=?, coordenacao=? WHERE id=?').run(nome, coordenacao, req.usuario.id);
+  res.json({sucesso:true, usuario: db.prepare('SELECT * FROM usuarios WHERE id=?').get(req.usuario.id)});
+});
+app.get('/api/logs', verificarToken, (req, res) => { res.json(db.prepare(`SELECT l.*, u.nome FROM logs l LEFT JOIN usuarios u ON l.usuario_id = u.id ORDER BY l.criadoem DESC LIMIT 100`).all()); });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log('AgN rodando na porta ' + PORT));
