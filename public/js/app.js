@@ -19,7 +19,7 @@ async function montarShell(usuario) {
     <nav class="main-header navbar navbar-expand navbar-white navbar-light">
       <a href="#" class="navbar-brand ml-3 mr-3" onclick="mostrarView('gerar')">
         <img src="/img/Logo-AgN-com-Texto.png" alt="AgN" style="height: 30px; width: auto; margin-right: 10px;">
-        <span class="font-weight-bold" style="color: #0056b3;">AgN</span>
+        <span class="font-weight-bold" style="color: #0056b3;"></span>
       </a>
       <ul class="navbar-nav"><li class="nav-item"><a class="nav-link" id="btnToggleMenu" href="#"><i class="fas fa-bars"></i></a></li></ul>
       <ul class="navbar-nav ml-auto">
