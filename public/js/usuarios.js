@@ -1,12 +1,11 @@
 import { apiGet, apiPost, toast } from './utils.js';
 
-let usuarioEditandoId = null; // Variável para controlar se é edição
+let usuarioEditandoId = null;
 
 export async function initUsuarios() {
   const content = document.getElementById('content');
   content.innerHTML = `
     <div class="row">
-      <!-- Formulário de Cadastro/Edição -->
       <div class="col-md-4">
         <div class="card card-primary card-outline" id="cardFormulario">
           <div class="card-header">
@@ -16,49 +15,47 @@ export async function initUsuarios() {
             <form id="formUsuario">
               <div class="form-group">
                 <label>Nome Completo</label>
-                <input type="text" id="nome" name="nome" class="form-control" required placeholder="Ex: João Silva">
+                <input type="text" id="nome" name="nome" class="form-control" required>
               </div>
               <div class="form-group">
                 <label>E-mail (Login)</label>
-                <input type="email" id="email" name="email" class="form-control" required placeholder="joao@agsus.gov.br">
+                <input type="email" id="email" name="email" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label>Coordenação</label>
+                <input type="text" id="coordenacao" name="coordenacao" class="form-control" placeholder="Ex: CCONT">
+              </div>
+              <div class="form-group">
+                <label>Perfil de Acesso</label>
+                <select name="role" id="role" class="form-control">
+                  <option value="USER">Usuário Comum</option>
+                  <option value="ADMIN">Administrador</option>
+                </select>
               </div>
               <div class="form-group">
                 <label>Senha</label>
-                <input type="password" name="senha" class="form-control" placeholder="******">
-                <small class="form-text text-muted" id="avisoSenha" style="display:none">Deixe em branco para manter a atual.</small>
+                <input type="password" name="senha" class="form-control">
+                <small class="form-text text-muted" id="avisoSenha" style="display:none">Deixe vazio para manter.</small>
               </div>
               
               <div class="d-flex justify-content-between">
-                <button type="button" class="btn btn-default btn-sm" id="btnCancelar" style="display:none" onclick="resetarFormulario()">
-                  Cancelar
-                </button>
-                <button type="submit" class="btn btn-success" id="btnSalvar">
-                  <i class="fas fa-save"></i> Cadastrar
-                </button>
+                <button type="button" class="btn btn-default btn-sm" id="btnCancelar" style="display:none" onclick="resetarFormulario()">Cancelar</button>
+                <button type="submit" class="btn btn-success" id="btnSalvar"><i class="fas fa-save"></i> Cadastrar</button>
               </div>
             </form>
           </div>
         </div>
       </div>
 
-      <!-- Lista de Usuários -->
       <div class="col-md-8">
         <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">Usuários Cadastrados</h3>
-          </div>
+          <div class="card-header"><h3 class="card-title">Usuários Cadastrados</h3></div>
           <div class="card-body p-0 table-responsive">
             <table class="table table-hover" id="tabelaUsuarios">
               <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>E-mail</th>
-                  <th style="width: 100px" class="text-center">Ações</th>
-                </tr>
+                <tr><th>Nome</th><th>E-mail</th><th>Coord.</th><th>Role</th><th class="text-center">Ações</th></tr>
               </thead>
-              <tbody>
-                <tr><td colspan="3" class="text-center">Carregando...</td></tr>
-              </tbody>
+              <tbody><tr><td colspan="5" class="text-center">Carregando...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -67,12 +64,9 @@ export async function initUsuarios() {
   `;
 
   document.getElementById('formUsuario').addEventListener('submit', salvarUsuario);
-  
-  // Expõe funções globais para os botões da tabela
   window.editarUsuario = prepararEdicao;
   window.deletarUsuario = deletarUsuario;
   window.resetarFormulario = resetarFormulario;
-
   carregarUsuarios();
 }
 
@@ -86,36 +80,27 @@ async function carregarUsuarios() {
       <tr>
         <td>${u.nome}</td>
         <td>${u.email}</td>
+        <td>${u.coordenacao || '-'}</td>
+        <td><span class="badge badge-${u.role === 'ADMIN' ? 'danger' : 'info'}">${u.role}</span></td>
         <td class="text-center">
-          <button class="btn btn-xs btn-info mr-1" onclick="editarUsuario('${u.id}', '${u.nome}', '${u.email}')" title="Editar">
-            <i class="fas fa-pen"></i>
-          </button>
-          
-          ${u.id !== usuarioLogado.id 
-            ? `<button class="btn btn-xs btn-danger" onclick="deletarUsuario(${u.id})" title="Excluir"><i class="fas fa-trash"></i></button>` 
-            : ''}
+          <button class="btn btn-xs btn-info mr-1" onclick="editarUsuario('${u.id}', '${u.nome}', '${u.email}', '${u.coordenacao||''}', '${u.role||'USER'}')"><i class="fas fa-pen"></i></button>
+          ${u.id !== usuarioLogado.id ? `<button class="btn btn-xs btn-danger" onclick="deletarUsuario(${u.id})"><i class="fas fa-trash"></i></button>` : ''}
         </td>
       </tr>
     `).join('');
-  } catch (e) {
-    alert('Erro ao carregar usuários: ' + e.message);
-  }
+  } catch (e) { alert(e.message); }
 }
 
-// Prepara o formulário para Modo Edição
-function prepararEdicao(id, nome, email) {
+function prepararEdicao(id, nome, email, coordenacao, role) {
   usuarioEditandoId = id;
-  
-  // Preenche campos
   document.getElementById('nome').value = nome;
   document.getElementById('email').value = email;
+  document.getElementById('coordenacao').value = coordenacao;
+  document.getElementById('role').value = role;
   
-  // Ajusta visual
   document.getElementById('tituloForm').innerText = 'Editar Usuário';
-  document.getElementById('cardFormulario').classList.remove('card-success');
-  document.getElementById('cardFormulario').classList.add('card-warning');
-  
-  document.getElementById('btnSalvar').innerHTML = '<i class="fas fa-check"></i> Salvar Alterações';
+  document.getElementById('cardFormulario').className = 'card card-warning card-outline';
+  document.getElementById('btnSalvar').innerHTML = '<i class="fas fa-check"></i> Salvar';
   document.getElementById('btnCancelar').style.display = 'inline-block';
   document.getElementById('avisoSenha').style.display = 'block';
 }
@@ -123,12 +108,8 @@ function prepararEdicao(id, nome, email) {
 function resetarFormulario() {
   usuarioEditandoId = null;
   document.getElementById('formUsuario').reset();
-  
-  // Reseta visual
   document.getElementById('tituloForm').innerText = 'Novo Usuário';
-  document.getElementById('cardFormulario').classList.remove('card-warning');
-  document.getElementById('cardFormulario').classList.add('card-success');
-  
+  document.getElementById('cardFormulario').className = 'card card-success card-outline';
   document.getElementById('btnSalvar').innerHTML = '<i class="fas fa-save"></i> Cadastrar';
   document.getElementById('btnCancelar').style.display = 'none';
   document.getElementById('avisoSenha').style.display = 'none';
@@ -138,58 +119,32 @@ async function salvarUsuario(e) {
   e.preventDefault();
   const form = e.target;
   const dados = Object.fromEntries(new FormData(form).entries());
-  
   try {
     const token = localStorage.getItem('agn_token');
     let url = '/api/usuarios';
     let method = 'POST';
-
-    // Se estiver editando, muda para PUT e adiciona ID na URL
-    if (usuarioEditandoId) {
-      url = `/api/usuarios/${usuarioEditandoId}`;
-      method = 'PUT';
-    }
+    if (usuarioEditandoId) { url = `/api/usuarios/${usuarioEditandoId}`; method = 'PUT'; }
 
     const resp = await fetch(url, {
       method: method,
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(dados)
     });
+    if (!resp.ok) throw new Error((await resp.json()).erro);
 
-    if (!resp.ok) {
-      const json = await resp.json();
-      throw new Error(json.erro || 'Erro ao salvar');
-    }
-
-    toast(usuarioEditandoId ? 'Usuário atualizado!' : 'Usuário criado!');
+    toast(usuarioEditandoId ? 'Atualizado!' : 'Criado!');
     resetarFormulario();
     carregarUsuarios();
-  } catch (erro) {
-    alert('Erro: ' + erro.message);
-  }
+  } catch (erro) { alert(erro.message); }
 }
 
 async function deletarUsuario(id) {
-  if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
-  
+  if (!confirm('Confirma exclusão?')) return;
   try {
     const token = localStorage.getItem('agn_token');
-    const resp = await fetch(`/api/usuarios/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    
-    if (!resp.ok) {
-      const json = await resp.json();
-      throw new Error(json.erro || 'Erro ao excluir');
-    }
-
-    toast('Usuário removido.');
+    const resp = await fetch(`/api/usuarios/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+    if (!resp.ok) throw new Error((await resp.json()).erro);
+    toast('Removido.');
     carregarUsuarios();
-  } catch (erro) {
-    alert(erro.message);
-  }
+  } catch (e) { alert(e.message); }
 }
