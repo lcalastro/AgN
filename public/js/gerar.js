@@ -274,22 +274,52 @@ async function onSubmitGerar(e) {
 
   btn.disabled = true;
   const htmlOriginal = btn.innerHTML;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
 
   try {
-    await apiPost('/api/gerar', dados);
-    toast('Número gerado com sucesso!');
+    const resp = await apiPost('/api/gerar', dados);
+    
+    // Sucesso! Modal Bonito Centralizado
+    // O backend retorna: { sucesso: true, dados: { numero, ano, tipo, ... } }
+    const { numero, ano, tipo } = resp.dados;
+
+    await Swal.fire({
+      icon: 'success',
+      title: 'Gerado com Sucesso!',
+      html: `
+        <div style="font-size: 1.2rem; margin-top: 10px;">
+          <p class="mb-1">Documento:</p>
+          <h3 class="text-primary font-weight-bold">${tipo}</h3>
+          <div class="display-4 font-weight-bold text-dark mt-3">
+            ${numero}/${ano}
+          </div>
+        </div>
+      `,
+      confirmButtonText: 'OK, Entendi',
+      confirmButtonColor: '#0056b3', // Azul AgSUS
+      allowOutsideClick: false
+    });
+
+    // Limpa e reseta
     form.reset();
     document.getElementById('data').valueAsDate = new Date();
-    configurarCamposPorTipo(''); // volta ao estado inicial
+    configurarCamposPorTipo(''); 
     carregarHistorico();
+
   } catch (err) {
-    alert('Erro ao gerar: ' + err.message);
+    // Erro também fica bonito
+    Swal.fire({
+      icon: 'error',
+      title: 'Erro ao gerar',
+      text: err.message,
+      confirmButtonColor: '#d33'
+    });
   } finally {
     btn.disabled = false;
     btn.innerHTML = htmlOriginal;
   }
 }
+
 
 async function carregarHistorico() {
   try {
