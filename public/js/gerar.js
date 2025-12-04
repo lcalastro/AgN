@@ -1,9 +1,12 @@
-import { apiPost, apiGet, toast } from './utils.js';
+import { apiPost, apiGet } from './utils.js';
 
 export async function initGerar() {
   const content = document.getElementById('content');
+  const anoAtual = new Date().getFullYear();
+
   content.innerHTML = `
     <div class="row">
+      <!-- COLUNA ESQUERDA: FORMULÁRIO -->
       <div class="col-lg-8">
         <div class="card card-primary card-outline">
           <div class="card-header">
@@ -13,7 +16,7 @@ export async function initGerar() {
           <form id="formAgN">
             <div class="card-body">
               
-              <!-- LINHA 1: Tipo, Data, Processo -->
+              <!-- LINHA 1 -->
               <div class="row">
                 <div class="col-md-4">
                   <div class="form-group">
@@ -33,133 +36,85 @@ export async function initGerar() {
                     </select>
                   </div>
                 </div>
-
                 <div class="col-md-3">
                   <div class="form-group">
                     <label>Data <span class="text-danger">*</span></label>
                     <input type="date" id="data" name="data" class="form-control" required>
                   </div>
                 </div>
-
                 <div class="col-md-5">
                   <div class="form-group">
                     <label>Processo SEI <span class="text-danger">*</span></label>
-                    <input type="text" id="processo" name="processo" class="form-control"
-                           placeholder="Ex: AGSUS.007637/2025-93" required>
+                    <input type="text" id="processo" name="processo" class="form-control" placeholder="Ex: AGSUS.007637/2025-93" required>
                   </div>
                 </div>
               </div>
 
-              <!-- Objeto (Sempre Obrigatório) -->
+              <!-- OBJETO -->
               <div class="form-group">
                 <label>Objeto <span class="text-danger">*</span></label>
-                <textarea id="objeto" name="objeto" rows="3" class="form-control"
-                          placeholder="Descrição detalhada do objeto..." required></textarea>
+                <textarea id="objeto" name="objeto" rows="3" class="form-control" required></textarea>
               </div>
 
               <hr>
 
-              <!-- CAMPOS EXTRAS (Controlados por JS) -->
+              <!-- CAMPOS EXTRAS -->
               <div class="row">
-                
-                <!-- Drive (Comum a quase todos, mas opcional) -->
                 <div class="col-md-3 campo-extra" id="grupo-drive">
-                  <div class="form-group">
-                    <label>ID Drive (Opcional)</label>
-                    <input type="number" id="drive" name="drive" class="form-control" placeholder="Ex: 375">
-                  </div>
+                  <div class="form-group"><label>ID Drive</label><input type="number" name="drive" class="form-control"></div>
                 </div>
-
-                <!-- Divulgação da Cotação -->
                 <div class="col-md-3 campo-extra" id="grupo-divulgacao">
-                  <div class="form-group">
-                    <label>Divulgação</label>
-                    <select id="divulgacaocotacao" name="divulgacaocotacao" class="form-control">
-                      <option value="">Selecione...</option>
-                      <option value="E-Mail">E-Mail</option>
-                      <option value="Compras Gov">Compras Gov</option>
-                    </select>
-                  </div>
+                  <div class="form-group"><label>Divulgação</label><select name="divulgacaocotacao" class="form-control"><option value="">Selecione...</option><option>E-Mail</option><option>Compras Gov</option></select></div>
                 </div>
-
-                <!-- Publicado no Site -->
                 <div class="col-md-3 campo-extra" id="grupo-site">
-                  <div class="form-group">
-                    <label>Publicado Site</label>
-                    <select id="publicadosite" name="publicadosite" class="form-control">
-                      <option value="Não">Não</option>
-                      <option value="Sim">Sim</option>
-                    </select>
-                  </div>
+                  <div class="form-group"><label>Publicado Site</label><select name="publicadosite" class="form-control"><option>Não</option><option>Sim</option></select></div>
                 </div>
-
-                <!-- Contratado -->
                 <div class="col-md-6 campo-extra" id="grupo-contratado">
-                  <div class="form-group">
-                    <label id="lbl-contratado">Contratado</label>
-                    <input type="text" id="contratado" name="contratado" class="form-control" placeholder="Razão Social">
-                  </div>
+                  <div class="form-group"><label id="lbl-contratado">Contratado</label><input type="text" id="contratado" name="contratado" class="form-control"></div>
                 </div>
-
-                <!-- Coordenação (Select Fixo) -->
                 <div class="col-md-3 campo-extra" id="grupo-coordenacao">
                   <div class="form-group">
                     <label>Coordenação</label>
                     <select id="coordenacao" name="coordenacao" class="form-control">
                       <option value="">Selecione...</option>
-                      <option value="CPA">CPA</option>
-                      <option value="CPAS">CPAS</option>
-                      <option value="CCS">CCS</option>
-                      <option value="CASS">CASS</option>
-                      <option value="CGC">CGC</option>
-                      <option value="UAC">UAC</option>
+                      <option>CPA</option><option>CPAS</option><option>CCS</option><option>CASS</option><option>CGC</option><option>UAC</option>
                     </select>
                   </div>
                 </div>
-
-                <!-- Orçamento -->
                 <div class="col-md-3 campo-extra" id="grupo-orcamento">
-                  <div class="form-group">
-                    <label>Orçamento</label>
-                    <input type="text" id="orcamento" name="orcamento" class="form-control" placeholder="R$ 0,00">
-                  </div>
+                  <div class="form-group"><label>Orçamento</label><input type="text" id="orcamento" name="orcamento" class="form-control"></div>
                 </div>
-
               </div>
 
-              <!-- Observações (Comum) -->
               <div class="form-group mt-2 campo-extra" id="grupo-observacoes">
-                <label>Observações</label>
-                <textarea id="observacoes" name="observacoes" rows="2" class="form-control"></textarea>
+                <label>Observações</label><textarea name="observacoes" rows="2" class="form-control"></textarea>
               </div>
-
             </div>
 
             <div class="card-footer text-right">
-              <button type="submit" class="btn btn-primary btn-lg" id="btnGerar">
-                <i class="fas fa-plus-circle"></i> Gerar Número
-              </button>
+              <button type="submit" class="btn btn-primary btn-lg" id="btnGerar"><i class="fas fa-plus-circle"></i> Gerar Número</button>
             </div>
           </form>
         </div>
       </div>
 
-      <!-- HISTÓRICO -->
+      <!-- COLUNA DIREITA: TABELA RESUMO -->
       <div class="col-lg-4">
-        <div class="card">
-          <div class="card-header bg-light">
-            <h3 class="card-title">Últimos Gerados</h3>
+        <div class="card card-info card-outline">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-chart-bar mr-2"></i>Status (${anoAtual})</h3>
           </div>
-          <div class="card-body p-0 table-responsive" style="max-height: 600px;">
-            <table id="tabelaHistorico" class="table table-sm table-hover mb-0">
+          <div class="card-body p-0">
+            <table class="table table-striped table-sm mb-0" id="tabelaResumo">
               <thead>
                 <tr>
-                  <th>Nº</th>
-                  <th>Tipo</th>
-                  <th>Processo</th>
+                  <th>Tipo de Documento</th>
+                  <th class="text-right">Atual</th>
                 </tr>
               </thead>
-              <tbody></tbody>
+              <tbody>
+                <tr><td colspan="2" class="text-center p-3">Carregando...</td></tr>
+              </tbody>
             </table>
           </div>
         </div>
@@ -167,100 +122,55 @@ export async function initGerar() {
     </div>
   `;
 
-  // Configurações Iniciais
+  // Inicialização
   document.getElementById('data').valueAsDate = new Date();
   document.getElementById('formAgN').addEventListener('submit', onSubmitGerar);
+  document.getElementById('tipo').addEventListener('change', (e) => configCampos(e.target.value));
+  
+  // Preenche coordenação
+  const user = JSON.parse(localStorage.getItem('agn_usuario') || '{}');
+  if (user.coordenacao) {
+    const el = document.getElementById('coordenacao');
+    // Tenta setar valor, se existir na lista
+    Array.from(el.options).forEach(o => { if(o.value === user.coordenacao) el.value = user.coordenacao });
+  }
 
-  const selTipo = document.getElementById('tipo');
-  selTipo.addEventListener('change', () => configCampos(selTipo.value));
-
-  // Tenta preencher coordenação do usuário logado
-  preencherCoordenacaoUsuario();
-
-  // Inicia ocultando extras
   configCampos('');
-  carregarHistorico();
+  carregarResumo(); // <--- Nova função
 }
 
-function configCampos(tipo) {
-  // 1. Esconde todos os grupos extras primeiro
-  const grupos = ['drive', 'divulgacao', 'site', 'contratado', 'coordenacao', 'orcamento', 'observacoes'];
-  grupos.forEach(id => document.getElementById('grupo-' + id).style.display = 'none');
-
-  // 2. Remove required de campos condicionais para não travar o envio oculto
-  const campReqs = ['contratado', 'orcamento'];
-  campReqs.forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.required = false;
-  });
+function configCampos(t) {
+  const ids = ['drive','divulgacao','site','contratado','coordenacao','orcamento','observacoes'];
+  ids.forEach(i => document.getElementById('grupo-'+i).style.display = 'none');
   
-  // Reset label contratado (tira o asterisco visual)
-  document.getElementById('lbl-contratado').innerHTML = 'Contratado';
+  // Remove required condicional
+  const elCont = document.getElementById('contratado');
+  if(elCont) { elCont.required = false; document.getElementById('lbl-contratado').innerHTML = 'Contratado'; }
 
-  if (!tipo) return;
+  if(!t) return;
 
-  // Função helper para mostrar campos
-  const show = (ids) => ids.forEach(id => document.getElementById('grupo-' + id).style.display = 'block');
-
-  // 3. Lógica por Tipo (Conforme solicitado)
-  switch (tipo) {
-    case 'Cotação de Preços':
-      // Data, Drive, Processo, Objeto, Divulgação, Publicado Site, Obs
-      show(['drive', 'divulgacao', 'site', 'observacoes']);
-      break;
-
-    case 'Pregão Eletrônico':
-      // Data, Drive, Processo, Objeto, Publicado Site, Obs
-      show(['drive', 'site', 'observacoes']);
-      break;
-
-    case 'Ata SRP':
-      // Data, Drive, Processo, Objeto, Contratado (Obrigatório), Coordenação, Obs
-      show(['drive', 'contratado', 'coordenacao', 'observacoes']);
-      // Torna Contratado Obrigatório
-      document.getElementById('contratado').required = true;
+  const show = (ls) => ls.forEach(i => document.getElementById('grupo-'+i).style.display = 'block');
+  
+  switch(t) {
+    case 'Cotação de Preços': show(['drive','divulgacao','site','observacoes']); break;
+    case 'Pregão Eletrônico': show(['drive','site','observacoes']); break;
+    case 'Ata SRP': 
+      show(['drive','contratado','coordenacao','observacoes']); 
+      elCont.required = true; 
       document.getElementById('lbl-contratado').innerHTML = 'Contratado <span class="text-danger">*</span>';
       break;
-
     case 'Credenciamento':
-    case 'Convênio':
-      // Data, Drive, Processo, Objeto, Orçamento, Publicado Site, Obs
-      show(['drive', 'orcamento', 'site', 'observacoes']);
-      break;
-
-    case 'Ordem de Fornecimento':
-    case 'Contratos':
-    case 'Inexigibilidade':
-    case 'Contrato de Patrocínio':
-    case 'Acordo de Cooperação':
-      // Data, Drive, Processo, Objeto, Coordenação, Obs
-      // OBS: No seu pedido anterior, Contratado não estava nessa lista final,
-      // mas geralmente contratos têm contratado. Vou seguir seu pedido estrito:
-      // Apenas Data, Drive, Processo, Objeto, Coordenação, Obs.
-      // (Se precisar de Contratado aqui também, avise).
-      show(['drive', 'coordenacao', 'observacoes']); 
-      break;
-  }
-}
-
-function preencherCoordenacaoUsuario() {
-  const user = JSON.parse(localStorage.getItem('agn_usuario') || '{}');
-  const el = document.getElementById('coordenacao');
-  if (el && user.coordenacao) {
-    // Verifica se a coordenação do usuário é válida nas opções
-    // Se for algo fora da lista (ex: ADM), ele seleciona vazio ou mantém.
-    el.value = user.coordenacao;
+    case 'Convênio': show(['drive','orcamento','site','observacoes']); break;
+    default: show(['drive','coordenacao','observacoes']); // Contratos, Ordem, etc
   }
 }
 
 async function onSubmitGerar(e) {
   e.preventDefault();
-  const form = e.target;
   const btn = document.getElementById('btnGerar');
-  const dados = Object.fromEntries(new FormData(form).entries());
-
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+  const dados = Object.fromEntries(new FormData(e.target));
+  
+  btn.disabled = true; btn.innerHTML = 'Gerando...';
 
   try {
     const resp = await apiPost('/api/gerar', dados);
@@ -268,55 +178,64 @@ async function onSubmitGerar(e) {
 
     await Swal.fire({
       icon: 'success',
-      title: 'Gerado com Sucesso!',
-      html: `
-        <div style="font-size: 1.2rem; margin-top: 10px;">
-          <p class="mb-1 text-muted">Documento:</p>
-          <h3 class="text-primary font-weight-bold">${tipo}</h3>
-          <div class="display-4 font-weight-bold text-dark mt-3">
-            ${numero}/${ano}
-          </div>
-        </div>
-      `,
+      title: 'Gerado!',
+      html: `<h3 class="text-primary">${tipo}</h3><div class="display-4 font-weight-bold">${numero}/${ano}</div>`,
       confirmButtonColor: '#0056b3'
     });
 
-    form.reset();
+    e.target.reset();
     document.getElementById('data').valueAsDate = new Date();
-    preencherCoordenacaoUsuario(); // Reaplica coordenação do usuário
-    configCampos(''); // Reseta campos visuais
-    carregarHistorico();
+    // Re-aplica coordenação e view
+    const user = JSON.parse(localStorage.getItem('agn_usuario') || '{}');
+    if(user.coordenacao) {
+       const el = document.getElementById('coordenacao');
+       Array.from(el.options).forEach(o => { if(o.value === user.coordenacao) el.value = user.coordenacao });
+    }
+    configCampos('');
+    
+    // Atualiza a tabelinha lateral
+    carregarResumo(); 
 
-  } catch (err) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Erro ao gerar',
-      text: err.message
-    });
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-plus-circle"></i> Gerar Número';
-  }
+  } catch(err) { Swal.fire('Erro', err.message, 'error'); }
+  finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus-circle"></i> Gerar Número'; }
 }
 
-async function carregarHistorico() {
+async function carregarResumo() {
   try {
-    const lista = await apiGet('/api/listar');
-    const tbody = document.querySelector('#tabelaHistorico tbody');
+    const dados = await apiGet('/api/sequencias');
     
-    if(!lista || lista.length === 0) {
-       tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Nenhum registro.</td></tr>';
-       return;
-    }
+    // Mapa para acesso rápido { "Cotação...": 472, ... }
+    const mapa = {};
+    dados.forEach(d => mapa[d.tipo] = d.ultimonumero);
 
-    tbody.innerHTML = lista.map(item => `
-      <tr>
-        <td><span class="badge badge-primary" style="font-size: 0.9rem">${item.numero}/${item.ano}</span></td>
-        <td><small class="d-block text-truncate" style="max-width: 150px;">${item.tipo}</small></td>
-        <td><small class="text-muted">${item.processo || '-'}</small></td>
-      </tr>
-    `).join('');
-  } catch (e) {
-    console.error(e);
-  }
+    // Lista na ordem desejada
+    const ordem = [
+      'Cotação de Preços',
+      'Pregão Eletrônico',
+      'Ata SRP',
+      'Credenciamento',
+      'Convênio',
+      'Ordem de Fornecimento',
+      'Contratos',
+      'Inexigibilidade',
+      'Contrato de Patrocínio',
+      'Acordo de Cooperação'
+    ];
+
+    const tbody = document.querySelector('#tabelaResumo tbody');
+    
+    tbody.innerHTML = ordem.map(tipo => {
+      const num = mapa[tipo] || 0;
+      // Destaque visual se tiver número
+      const numHtml = num > 0 ? `<b>${num}</b>` : `<span class="text-muted">0</span>`;
+      
+      return `
+        <tr>
+          <td>${tipo}</td>
+          <td class="text-right">${numHtml}</td>
+        </tr>
+      `;
+    }).join('');
+
+  } catch(e) { console.error(e); }
 }
