@@ -57,23 +57,36 @@ async function montarShell(usuario) {
             <li class="nav-header">MENU PRINCIPAL</li>
             
             <li class="nav-item">
-              <a class="nav-link active" onclick="mostrarView('gerar')" style="cursor: pointer">
+              <a class="nav-link active" onclick="iew('gerar')" style="cursor: pointer">
                 <i class="nav-icon fas fa-plus"></i> <p>Gerar Numerador</p>
               </a>
             </li>
             
             <li class="nav-item">
-              <a class="nav-link" onclick="mostrarView('consultar')" style="cursor: pointer">
+              <a class="nav-link" onclick="iew('consultar')" style="cursor: pointer">
                 <i class="nav-icon fas fa-search"></i> <p>Consultar</p>
               </a>
             </li>
 
+            ${usuario.role === 'ADMIN' ? `
+            <li class="nav-item">
+              <a class="nav-link" onclick="mostrarView('usuarios')" ... > ... </a>
+            </li>
+          
             <!-- SÓ MOSTRA PARA ADMIN -->
             ${usuario.role === 'ADMIN' ? `
             <li class="nav-item">
               <a class="nav-link" onclick="mostrarView('usuarios')" style="cursor: pointer">
                 <i class="nav-icon fas fa-users"></i>
                 <p>Gerenciar Usuários</p>
+              </a>
+            </li>
+
+            <!-- BANCO DE DADOS -->
+            <li class="nav-item">
+              <a class="nav-link" onclick="mostrarView('admin')" style="cursor: pointer">
+                <i class="nav-icon fas fa-database"></i>
+                <p>Banco de Dados</p>
               </a>
             </li>
             ` : ''}
@@ -126,6 +139,7 @@ window.mostrarView = async (view) => {
   else if (view === 'usuarios') await initUsuarios();
   else if (view === 'perfil') await initPerfil();
   else if (view === 'logs') await mostrarLogs();
+  else if (view === 'admin') await initAdmin();
 };
 
 window.logout = () => {
