@@ -17,7 +17,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function montarShell(usuario) {
   document.getElementById('app').innerHTML = `
     <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-      <a href="#" class="navbar-brand ml-3" onclick="mostrarView('gerar')"><span class="font-weight-bold text-primary">AgN</span></a>
+      <a href="#" class="navbar-brand ml-3 mr-3" onclick="mostrarView('gerar')">
+        <img src="/img/Logo-AgN-com-Texto.png" alt="AgN" style="height: 30px; width: auto; margin-right: 10px;">
+        <span class="font-weight-bold" style="color: #0056b3;">AgN</span>
+      </a>
       <ul class="navbar-nav"><li class="nav-item"><a class="nav-link" id="btnToggleMenu" href="#"><i class="fas fa-bars"></i></a></li></ul>
       <ul class="navbar-nav ml-auto">
         <li class="nav-item"><a class="nav-link" href="#" onclick="mostrarView('perfil')" id="nomeHeader"><i class="far fa-user mr-2"></i> ${usuario.nome}</a></li>
