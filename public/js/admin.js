@@ -21,7 +21,7 @@ export async function initAdmin() {
               <div class="card-body d-flex align-items-center justify-content-between">
                 <div>
                   <h5 class="text-primary font-weight-bold mb-1"><i class="fas fa-download mr-2"></i>Exportar Dados (Backup)</h5>
-                  <span class="text-muted small">Baixa o arquivo de>.db</code> completo atual do sistema.</span>
+                  <span class="text-muted small">Baixa o arquivo de>.sql</code> completo atual do sistema.</span>
                 </div>
                 <button class="btn btn-primary" onclick="baixarBackup()">
                   <i class="fas fa-file-download mr-2"></i> Baixar Backup
@@ -41,9 +41,9 @@ export async function initAdmin() {
               
               <form id="formRestore" class="d-flex align-items-end bg-light p-3 rounded border">
                 <div class="flex-grow-1 mr-3">
-                  <label class="small text-muted mb-1">Selecione o arquivo de backup (.db)</label>
+                  <label class="small text-muted mb-1">Selecione o arquivo de backup (.sql)</label>
                   <div class="custom-file">
-                    <input type="file" class="custom-file-input" name="backup" id="arquivoBackup" accept=".db" required onchange="document.getElementById('labelFile').innerText = this.files[0].name">
+                    <input type="file" class="custom-file-input" name="backup" id="arquivoBackup" accept=".sql" required onchange="document.getElementById('labelFile').innerText = this.files[0].name">
                     <label class="custom-file-label" for="arquivoBackup" id="labelFile">Escolher arquivo...</label>
                   </div>
                 </div>
@@ -74,7 +74,7 @@ async function baixarBackup() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `agn_backup_${new Date().toISOString().split('T')[0]}.db`;
+    a.download = `agn_backup_${new Date().toISOString().split('T')[0]}.sql`;
     document.body.appendChild(a);
     a.click();
     a.remove();
