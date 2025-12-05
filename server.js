@@ -190,8 +190,13 @@ const sqlEscape = (val) => {
 };
 
 // ==========================================================================
-// 4. ROTAS DE BACKUP & RESTORE (SQL DUMP)
+// 4. ROTAS KEEPALIVE, DE BACKUP & RESTORE (SQL DUMP)
 // ==========================================================================
+
+// Rota leve para Keep-Alive
+app.get('/health', (req, res) => {
+    res.status(200).send('OK');
+});
 
 app.get('/api/backup', verificarToken, apenasAdmin, (req, res) => {
   try {
