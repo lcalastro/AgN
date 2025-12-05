@@ -4,7 +4,7 @@
 
 /* 1. VARIÁVEIS DE COR */
 :root {
-  --agsus-azul: #0056b3;       /* Azul Institucional */
+  --agsus-azul: #0056b3; /* Azul Institucional */
   --agsus-azul-claro: #007bff; /* Azul Highlight */
   --agsus-cinza-sidebar: #1e293b; /* Cinza Profissional */
 }
@@ -74,7 +74,7 @@
     width: 4.6rem !important;
   }
   
-  /* Esconde textos do menu quando recolhido (AdminLTE faz isso, mas garantimos aqui) */
+  /* Esconde textos do menu quando recolhido */
   body.sidebar-collapse .main-sidebar .brand-text,
   body.sidebar-collapse .main-sidebar .user-panel,
   body.sidebar-collapse .main-sidebar .nav-sidebar .nav-link p {
