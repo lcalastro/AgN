@@ -30,6 +30,10 @@ const db = new Database(dbPath, dbOptions);
 
 const SECRET = 'agsus-secret-2025';
 
+// Aumenta limite do body para JSON/Dados grandes
+app.use(express.json({ limit: '50mb' }));
+app.use(express.static('public'));
+
 // ==========================================================================
 // 1. ESTRUTURA DO BANCO DE DADOS
 // ==========================================================================
