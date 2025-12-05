@@ -1,22 +1,34 @@
 const express = require('express');
-const Database = require('better-sqlite3');
+// REMOVA: const Database = require('better-sqlite3');
+// ADICIONE:
+const Database = require('libsql'); 
+require('dotenv').config(); // Carrega variáveis de ambiente
+
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 
-// Configuração de Upload Temporário
 const upload = multer({ dest: 'uploads/' });
-
 const app = express();
-// Inicializa o banco SQLite (Arquivo local)
-let db = new Database('agndados.db'); 
-const SECRET = 'agsus-secret-2025'; 
 
-// Aumenta limite do body para JSON/Dados grandes
-app.use(express.json({ limit: '50mb' }));
-app.use(express.static('public'));
+// --- ALTERAÇÃO DA CONEXÃO ---
+// Verifica se existem credenciais do Turso no ambiente (Render)
+const url = process.env.TURSO_DATABASE_URL;
+const authToken = process.env.TURSO_AUTH_TOKEN;
+
+// Se tiver URL, conecta no Turso. Se não, cria arquivo local (fallback)
+const dbOptions = url ? { authToken } : {};
+const dbPath = url || 'agndados.db';
+
+console.log(`>>> Conectando ao banco: ${url ? 'TURSO CLOUD' : 'ARQUIVO LOCAL'}`);
+
+// Inicializa o banco com a nova biblioteca
+const db = new Database(dbPath, dbOptions);
+// ----------------------------
+
+const SECRET = 'agsus-secret-2025';
 
 // ==========================================================================
 // 1. ESTRUTURA DO BANCO DE DADOS
@@ -112,11 +124,11 @@ if (checkSeq === 0) {
     { tipo: 'Acordo de Cooperação', num: 1 }
   ];
 
-  const insertTransaction = db.transaction(() => {
-    sequenciasIniciais.forEach(s => {
+  // Inserção simples em loop (mais compatível com Turso/LibSQL neste contexto)
+  sequenciasIniciais.forEach(s => {
       initSeqs.run(s.tipo, 2025, s.num);
-    });
   });
+  console.log('>>> Sequências 2025 inicializadas com sucesso.');
 
   try {
     insertTransaction();
@@ -248,51 +260,65 @@ app.get('/api/sequencias', verificarToken, (req, res) => {
 });
 
 app.post('/api/gerar', verificarToken, (req, res) => {
-  const dados = req.body;
-  const anoAtual = new Date().getFullYear();
+    const dados = req.body;
+    const anoAtual = new Date().getFullYear();
 
-  if (!dados.tipo || !dados.processo || !dados.objeto) return res.status(400).json({ erro: 'Campos obrigatórios faltando.' });
+    if (!dados.tipo || !dados.processo || !dados.objeto) {
+        return res.status(400).json({ erro: 'Campos obrigatórios faltando.' });
+    }
 
-  try {
-    const resultado = db.transaction(() => {
-      // Busca sequência atual
-      let seq = db.prepare('SELECT ultimonumero FROM sequencias WHERE tipo = ? AND ano = ?').get(dados.tipo, anoAtual);
-      
-      // Se existe, soma 1. Se não, começa do 1.
-      let novoNumero = seq ? seq.ultimonumero + 1 : 1;
+    try {
+        // 1. Inicia a Transação Manualmente
+        db.exec('BEGIN IMMEDIATE'); 
 
-      if (seq) {
-        db.prepare('UPDATE sequencias SET ultimonumero = ? WHERE tipo = ? AND ano = ?').run(novoNumero, dados.tipo, anoAtual);
-      } else {
-        db.prepare('INSERT INTO sequencias (tipo, ano, ultimonumero) VALUES (?, ?, ?)').run(dados.tipo, anoAtual, novoNumero);
-      }
+        // 2. Busca sequência atual
+        let seq = db.prepare('SELECT ultimonumero FROM sequencias WHERE tipo = ? AND ano = ?').get(dados.tipo, anoAtual);
+        
+        // 3. Calcula novo número
+        let novoNumero = seq ? seq.ultimonumero + 1 : 1;
 
-      const stmt = db.prepare(`
-        INSERT INTO documentos (
-          tipo, ano, numero, usuario_id, dataregistro, driveid, processo, objeto,
-          divulgacaocotacao, publicadosite, contratado, coordenacao, orcamento, observacoes
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `);
+        // 4. Atualiza ou Cria Sequência
+        if (seq) {
+            db.prepare('UPDATE sequencias SET ultimonumero = ? WHERE tipo = ? AND ano = ?').run(novoNumero, dados.tipo, anoAtual);
+        } else {
+            db.prepare('INSERT INTO sequencias (tipo, ano, ultimonumero) VALUES (?, ?, ?)').run(dados.tipo, anoAtual, novoNumero);
+        }
 
-      const info = stmt.run(
-        dados.tipo, anoAtual, novoNumero, req.usuario.id, // <--- Vincula ID do usuário
-        dados.data || new Date().toISOString().split('T')[0],
-        dados.drive || null, dados.processo, dados.objeto,
-        dados.divulgacaocotacao || null, dados.publicadosite || 'Não',
-        dados.contratado || null, dados.coordenacao || null,
-        dados.orcamento || null, dados.observacoes || null
-      );
+        // 5. Insere o Documento
+        const stmt = db.prepare(`
+            INSERT INTO documentos (
+            tipo, ano, numero, usuario_id, dataregistro, driveid, processo, objeto,
+            divulgacaocotacao, publicadosite, contratado, coordenacao, orcamento, observacoes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
 
-      registrarLog(req.usuario.id, 'GERAR_NUMERADOR', `Criou ${dados.tipo} #${novoNumero}/${anoAtual}`);
-      
-      return { id: info.lastInsertRowid, numero: novoNumero, ano: anoAtual, tipo: dados.tipo };
-    })();
+        const info = stmt.run(
+            dados.tipo, anoAtual, novoNumero, req.usuario.id,
+            dados.data || new Date().toISOString().split('T')[0],
+            dados.drive || null, dados.processo, dados.objeto,
+            dados.divulgacaocotacao || null, dados.publicadosite || 'Não',
+            dados.contratado || null, dados.coordenacao || null,
+            dados.orcamento || null, dados.observacoes || null
+        );
 
-    res.json({ sucesso: true, dados: resultado });
-  } catch (erro) {
-    console.error(erro);
-    res.status(500).json({ erro: 'Erro ao gerar número.' });
-  }
+        // 6. Confirma a transação (Salva tudo)
+        db.exec('COMMIT');
+
+        registrarLog(req.usuario.id, 'GERAR_NUMERADOR', `Criou ${dados.tipo} #${novoNumero}/${anoAtual}`);
+        
+        // Retorna sucesso
+        res.json({ 
+            sucesso: true, 
+            dados: { id: info.lastInsertRowid, numero: novoNumero, ano: anoAtual, tipo: dados.tipo } 
+        });
+
+    } catch (erro) {
+        // Se algo der errado, desfaz as alterações no banco
+        try { db.exec('ROLLBACK'); } catch(e) {} 
+        
+        console.error("Erro ao gerar:", erro);
+        res.status(500).json({ erro: 'Erro ao gerar número. Tente novamente.' });
+    }
 });
 
 // LISTAR (Com JOIN para pegar nome do usuário)
