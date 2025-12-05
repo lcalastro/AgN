@@ -59,11 +59,6 @@ async function salvarPerfil(e) {
   e.preventDefault();
   const form = e.target;
   const dados = Object.fromEntries(new FormData(form).entries());
-  
-  // PUT na rota nova
-  // Como nosso utils.js só tem apiPost (POST) e apiGet (GET), vamos fazer fetch manual aqui ou criar apiPut.
-  // Para simplificar, uso fetch direto com token.
-  
   const btn = form.querySelector('button');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
