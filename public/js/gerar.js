@@ -136,7 +136,7 @@ export async function initGerar() {
   }
 
   configCampos('');
-  carregarResumo(); // <--- Nova função
+  carregarResumo();
 }
 
 function configCampos(t) {
@@ -161,7 +161,7 @@ function configCampos(t) {
       break;
     case 'Credenciamento':
     case 'Convênio': show(['drive','orcamento','site','observacoes']); break;
-    default: show(['drive','coordenacao','observacoes']); // Contratos, Ordem, etc
+    default: show(['drive','coordenacao','observacoes']);
   }
 }
 
