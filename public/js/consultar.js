@@ -72,7 +72,7 @@ async function buscarDocumentos(e) {
   tbody.innerHTML = '<tr><td colspan="5" class="text-center"><i class="fas fa-spinner fa-spin"></i> Buscando...</td></tr>';
 
   try {
-    // Chama a busca ou listar dependendo se tem filtros (a lógica tá no backend, buscar lida com tudo)
+    // Chama a busca ou listar dependendo se tem filtros (a lógica tá no backend)
     const url = e ? `/api/buscar?${params}` : '/api/listar';
     const lista = await apiGet(url);
 
@@ -114,7 +114,7 @@ async function verDetalhe(id) {
 
     const dataFormatada = new Date(doc.dataregistro || doc.criadoem).toLocaleDateString('pt-BR');
     
-    // Construção do HTML do Modal (Design Novo)
+    // Construção do HTML do Modal
     const htmlContent = `
       <div class="text-left">
         
@@ -210,7 +210,7 @@ async function verDetalhe(id) {
       html: htmlContent,
       width: '700px',
       showCloseButton: true,
-      showConfirmButton: false, // Apenas visualização, botão fechar no topo já resolve ou clique fora
+      showConfirmButton: false, // Apenas visualização
       focusConfirm: false
     });
 
