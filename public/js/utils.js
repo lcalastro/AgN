@@ -36,5 +36,5 @@ export function formatarData(data) {
 
 // Toast simples (sem bootstrap)
 export function toast(mensagem, tipo = 'success') {
-  alert(mensagem); // simples por enquanto
+  alert(mensagem);
 }
