@@ -20,7 +20,12 @@ const authToken = process.env.TURSO_AUTH_TOKEN;
 
 // Se tiver URL, conecta no Turso. Se não, cria arquivo local (fallback)
 const dbOptions = url ? { authToken } : {};
-const dbPath = url || 'agndados.db';
+if (!url) {
+    console.error("ERRO FATAL: Variável TURSO_DATABASE_URL não encontrada!");
+    process.exit(1); // Derruba o servidor de propósito
+}
+
+const dbPath = url;
 
 console.log(`>>> Conectando ao banco: ${url ? 'TURSO CLOUD' : 'ARQUIVO LOCAL'}`);
 
